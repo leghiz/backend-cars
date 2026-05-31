@@ -1,0 +1,610 @@
+openapi: 3.0.3
+info:
+  title: cars
+  version: 1.0.0
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, first_name, last_name, phone_number]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                first_name: { type: string }
+                last_name: { type: string }
+                phone_number: { type: string }
+      responses:
+        '201':
+          description: юзер создан
+
+  /auth/verify:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email: { type: string }
+                code: { type: string }
+      responses:
+        '200':
+          description: аккаунт подтвержден
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: в аккаунт вошли
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  is_admin: { type: boolean }
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ old_password, new_password ]
+              properties:
+                old_password: { type: string, format: password }
+                new_password: { type: string, format: password }
+      responses:
+        '200':
+          description: пароль изменен
+
+  /auth/forgot-password/request:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email ]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: код подтверждения отправлен
+
+  /auth/forgot-password/verify:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email, code ]
+              properties:
+                email: { type: string, format: email }
+                code: { type: string }
+      responses:
+        '200':
+          description: код подтвержден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reset_token: { type: string }
+
+  /auth/forgot-password/reset:
+    post:
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ reset_token, new_password ]
+              properties:
+                reset_token: { type: string }
+                new_password: { type: string, format: password }
+      responses:
+        '200':
+          description: пароль изменен
+
+  /profile:
+    get:
+      tags: [User]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: информация о пользователе и его заявках
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProfileResponse' }
+    post:
+      tags: [ User ]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name: { type: string }
+                last_name: { type: string }
+                email: { type: string }
+                phone_number: { type: string }
+                avatar: { type: string, format: binary }
+      responses:
+        '200':
+          description: профиль обновлен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        '200':
+          description: все пользователи системы
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/UserListItem' }
+
+  /admin/users/{id}:
+    get:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: профиль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProfileResponse' }
+    delete:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: пользователь удален
+
+  /requests:
+    post:
+      tags: [User]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                car_name: { type: string }
+                call_time: { type: string }
+                comment: { type: string }
+      responses:
+        '201':
+          description: заявка отправлена
+
+  /requests/{id}:
+    patch:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment: { type: string }
+                is_solved: { type: boolean }
+                lot_id: { type: integer, nullable: true }
+      responses:
+        '200':
+          description: заявка обновлена
+    delete:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: заявка удалена
+
+  /catalog/filters:
+    get:
+      operationId: getCatalogFilters
+      tags: [Catalog]
+      responses:
+        '200':
+          description: фильтры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterOptions'
+
+  /catalog:
+    get:
+      operationId: getCatalog
+      tags: [Catalog]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: manufacturer_id
+          in: query
+          schema: { type: integer }
+        - name: model_id
+          in: query
+          schema: { type: integer }
+        - name: color_id
+          in: query
+          schema: { type: integer }
+        - name: transmission
+          in: query
+          schema: { type: string, enum: ["Автомат", "Механика", "Робот", "Вариатор"] }
+        - name: drive
+          in: query
+          schema: { type: string, enum: ["Полный", "Передний", "Задний"] }
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: price_from
+          in: query
+          schema: { type: number }
+        - name: price_to
+          in: query
+          schema: { type: number }
+        - name: mileage_from
+          in: query
+          schema: { type: integer }
+        - name: mileage_to
+          in: query
+          schema: { type: integer }
+        - name: engine_volume_id
+          in: query
+          schema: { type: integer }
+        - name: is_sold
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: список машин
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LotListItem'
+    post:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LotDetail' }
+      responses:
+        '201':
+          description: машина добавлена
+
+  /catalog/{id}:
+    get:
+      tags: [Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: все данные о машине
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LotDetail'
+    delete:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: машина удалена
+    patch:
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LotDetail' }
+      responses:
+        '200':
+          description: данные машины изменены
+
+  /reviews:
+    get:
+      tags: [Reviews]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: date_order
+          in: query
+          schema:
+            type: string
+            enum: [ "asc", "desc" ]
+            default: "desc"
+        - name: rating_order
+          in: query
+          schema:
+            type: string
+            enum: [ "asc", "desc" ]
+            default: "desc"
+      responses:
+        '200':
+          description: все отзывы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+    post:
+      tags: [Reviews, User]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ lot_id, rating, comment ]
+              properties:
+                lot_id: { type: integer }
+                rating: { type: integer }
+                comment: { type: string }
+      responses:
+        '201':
+          description: отзыв отправлен
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Request:
+      type: object
+      properties:
+        id: { type: integer }
+        car_name: { type: string, nullable: true }
+        lot:
+          oneOf:
+            - $ref: '#/components/schemas/LotShort'
+          nullable: true
+        call_time: { type: string, nullable: true }
+        comment: { type: string, nullable: true }
+        is_solved: { type: boolean, default: false }
+        created_at: { type: string, format: date-time }
+
+    UserListItem:
+      type: object
+      properties:
+        id: { type: integer }
+        first_name: { type: string }
+        last_name: { type: string }
+        phone_number: { type: string }
+        avatar_url: { type: string, nullable: true }
+        active_requests_count: { type: integer }
+        is_admin: { type: boolean, default: false }
+
+    Profile:
+      allOf:
+        - $ref: '#/components/schemas/UserListItem'
+        - type: object
+          properties:
+            email: { type: string, format: email }
+
+    ProfileResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/Profile' }
+        requests: { type: array, items: { $ref: '#/components/schemas/Request' } }
+
+    FilterOptions:
+      type: object
+      properties:
+        manufacturers: { type: array, items: { $ref: '#/components/schemas/Manufacturer' } }
+        car_models: { type: array, items: { $ref: '#/components/schemas/CarModel' } }
+        colors: { type: array, items: { $ref: '#/components/schemas/Color' } }
+        engine_volumes: { type: array, items: { $ref: '#/components/schemas/EngineVolume' } }
+        transmissions: { type: array, items: { type: string, enum: ["Автомат", "Механика", "Робот", "Вариатор"] } }
+        drive_types: { type: array, items: { type: string, enum: ["Полный", "Передний", "Задний"] } }
+        years: { type: array, items: { type: integer } }
+        price_range: { $ref: '#/components/schemas/PriceRange' }
+        mileage_range: { $ref: '#/components/schemas/MileageRange' }
+
+    Manufacturer:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+
+    CarModel:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        manufacturer_id: { type: integer }
+
+    Color:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+
+    EngineVolume:
+      type: object
+      properties:
+        id: { type: integer }
+        volume: { type: number, format: float }
+
+    PriceRange:
+      type: object
+      properties:
+        min: { type: number, format: float }
+        max: { type: number, format: float }
+
+    MileageRange:
+      type: object
+      properties:
+        min: { type: integer }
+        max: { type: integer }
+
+    LotListItem:
+      type: object
+      properties:
+        id: { type: integer }
+        manufacturer: { type: string }
+        model: { type: string }
+        price: { type: number }
+        year: { type: integer }
+        engine_volume: { type: number }
+        images: { type: array, items: { type: string } }
+        is_sold: { type: boolean, default: false }
+
+    LotDetail:
+      type: object
+      properties:
+        id: { type: integer }
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        price: { type: number }
+        mileage: { type: integer }
+        engine_volume: { type: number }
+        color: { type: string }
+        transmission: { type: string }
+        drive: { type: string }
+        body_number: { type: string }
+        is_sold: { type: boolean, default: false }
+        sold_date: { type: string, format: date, nullable: true }
+        review:
+          oneOf:
+            - $ref: '#/components/schemas/Review'
+          nullable: true
+        images: { type: array, items: { type: string } }
+
+    LotShort:
+      type: object
+      properties:
+        id: { type: integer }
+        manufacturer: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        body_number: { type: string }
+
+    Review:
+      type: object
+      properties:
+        id: { type: integer }
+        lot_id: { type: integer }
+        manufacturer: { type: string }
+        model: { type: string }
+        first_name: { type: string }
+        last_name: { type: string }
+        avatar_url: { type: string, nullable: true }
+        rating: { type: integer }
+        comment: { type: string }
+        created_at: { type: string, format: date-time }
