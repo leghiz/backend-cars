@@ -52,6 +52,72 @@ class CatalogController extends Controller
 {
 
     /**
+     * Operation catalogIdDelete
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogIdDeleteAction(Request $request, $id)
+    {
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 204;
+            $responseHeaders = [];
+
+            $handler->catalogIdDelete($id, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                204 => 'машина удалена',
+                default => '',
+            };
+
+            return new Response(
+                '',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
      * Operation catalogIdGet
      *
      * @param Request $request The Symfony request to handle.
@@ -113,6 +179,166 @@ class CatalogController extends Controller
                     $responseHeaders,
                     [
                         'Content-Type' => $responseFormat,
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation catalogIdPatch
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogIdPatchAction(Request $request, $id)
+    {
+        // Make sure that the client is providing something that we can consume
+        $consumes = ['application/json'];
+        if (!static::isContentTypeAllowed($request, $consumes)) {
+            // We can't consume the content that the client is sending us
+            return new Response('', 415);
+        }
+
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+        $lotDetail = $request->getContent();
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
+            $lotDetail = $this->deserialize($lotDetail, 'OpenAPI\Server\Model\LotDetail', $inputFormat);
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("OpenAPI\Server\Model\LotDetail");
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($lotDetail, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 204;
+            $responseHeaders = [];
+
+            $handler->catalogIdPatch($id, $lotDetail, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                200 => 'данные машины изменены',
+                default => '',
+            };
+
+            return new Response(
+                '',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation catalogPost
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogPostAction(Request $request)
+    {
+        // Make sure that the client is providing something that we can consume
+        $consumes = ['application/json'];
+        if (!static::isContentTypeAllowed($request, $consumes)) {
+            // We can't consume the content that the client is sending us
+            return new Response('', 415);
+        }
+
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+        $lotDetail = $request->getContent();
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
+            $lotDetail = $this->deserialize($lotDetail, 'OpenAPI\Server\Model\LotDetail', $inputFormat);
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("OpenAPI\Server\Model\LotDetail");
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($lotDetail, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 204;
+            $responseHeaders = [];
+
+            $handler->catalogPost($lotDetail, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                201 => 'машина добавлена',
+                default => '',
+            };
+
+            return new Response(
+                '',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
                         'X-OpenAPI-Message' => $message
                     ]
                 )

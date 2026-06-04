@@ -9,3 +9,6 @@
 
 controllers:
     resource: routing.controllers
+
+openapi_server:
+    resource: "@OpenAPIServerBundle/Resources/config/routing.yaml"

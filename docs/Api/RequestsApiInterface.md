@@ -1,12 +1,12 @@
-# OpenAPI\Server\Api\AdminApiInterface
+# OpenAPI\Server\Api\RequestsApiInterface
 
 All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**adminUsersGet**](AdminApiInterface.md#adminUsersGet) | **GET** /admin/users | 
-[**adminUsersIdDelete**](AdminApiInterface.md#adminUsersIdDelete) | **DELETE** /admin/users/{id} | 
-[**adminUsersIdGet**](AdminApiInterface.md#adminUsersIdGet) | **GET** /admin/users/{id} | 
+[**requestsIdDelete**](RequestsApiInterface.md#requestsIdDelete) | **DELETE** /requests/{id} | 
+[**requestsIdPatch**](RequestsApiInterface.md#requestsIdPatch) | **PATCH** /requests/{id} | 
+[**requestsPost**](RequestsApiInterface.md#requestsPost) | **POST** /requests | 
 
 
 ## Service Declaration
@@ -14,88 +14,35 @@ Method | HTTP request | Description
 # config/services.yaml
 services:
     # ...
-    Acme\MyBundle\Api\AdminApi:
+    Acme\MyBundle\Api\RequestsApi:
         tags:
-            - { name: "open_api_server.api", api: "admin" }
+            - { name: "open_api_server.api", api: "requests" }
     # ...
 ```
 
-## **adminUsersGet**
-> OpenAPI\Server\Model\UserListItem adminUsersGet($page, $limit)
+## **requestsIdDelete**
+> requestsIdDelete($id)
 
 
 
 ### Example Implementation
 ```php
 <?php
-// src/Acme/MyBundle/Api/AdminApiInterface.php
+// src/Acme/MyBundle/Api/RequestsApiInterface.php
 
 namespace Acme\MyBundle\Api;
 
-use OpenAPI\Server\Api\AdminApiInterface;
+use OpenAPI\Server\Api\RequestsApiInterface;
 
-class AdminApi implements AdminApiInterface
+class RequestsApi implements RequestsApiInterface
 {
 
     // ...
 
     /**
-     * Implementation of AdminApiInterface#adminUsersGet
+     * Implementation of RequestsApiInterface#requestsIdDelete
      */
-    public function adminUsersGet(int $page, int $limit, int &$responseCode, array &$responseHeaders): array|object|null
-    {
-        // Implement the operation ...
-    }
-
-    // ...
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **page** | **int**|  | [optional] [default to 1]
- **limit** | **int**|  | [optional] [default to 10]
-
-### Return type
-
-[**OpenAPI\Server\Model\UserListItem**](../Model/UserListItem.md)
-
-### Authorization
-
-[bearerAuth](../../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
-
-## **adminUsersIdDelete**
-> adminUsersIdDelete($id)
-
-
-
-### Example Implementation
-```php
-<?php
-// src/Acme/MyBundle/Api/AdminApiInterface.php
-
-namespace Acme\MyBundle\Api;
-
-use OpenAPI\Server\Api\AdminApiInterface;
-
-class AdminApi implements AdminApiInterface
-{
-
-    // ...
-
-    /**
-     * Implementation of AdminApiInterface#adminUsersIdDelete
-     */
-    public function adminUsersIdDelete(int $id, int &$responseCode, array &$responseHeaders): void
+    public function requestsIdDelete(int $id, int &$responseCode, array &$responseHeaders): void
     {
         // Implement the operation ...
     }
@@ -125,29 +72,29 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 
-## **adminUsersIdGet**
-> OpenAPI\Server\Model\ProfileResponse adminUsersIdGet($id)
+## **requestsIdPatch**
+> requestsIdPatch($id, $requestsIdPatchRequest)
 
 
 
 ### Example Implementation
 ```php
 <?php
-// src/Acme/MyBundle/Api/AdminApiInterface.php
+// src/Acme/MyBundle/Api/RequestsApiInterface.php
 
 namespace Acme\MyBundle\Api;
 
-use OpenAPI\Server\Api\AdminApiInterface;
+use OpenAPI\Server\Api\RequestsApiInterface;
 
-class AdminApi implements AdminApiInterface
+class RequestsApi implements RequestsApiInterface
 {
 
     // ...
 
     /**
-     * Implementation of AdminApiInterface#adminUsersIdGet
+     * Implementation of RequestsApiInterface#requestsIdPatch
      */
-    public function adminUsersIdGet(int $id, int &$responseCode, array &$responseHeaders): array|object|null
+    public function requestsIdPatch(int $id, ?RequestsIdPatchRequest $requestsIdPatchRequest, int &$responseCode, array &$responseHeaders): void
     {
         // Implement the operation ...
     }
@@ -161,10 +108,11 @@ class AdminApi implements AdminApiInterface
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **int**|  |
+ **requestsIdPatchRequest** | [**OpenAPI\Server\Model\RequestsIdPatchRequest**](../Model/RequestsIdPatchRequest.md)|  | [optional]
 
 ### Return type
 
-[**OpenAPI\Server\Model\ProfileResponse**](../Model/ProfileResponse.md)
+void (empty response body)
 
 ### Authorization
 
@@ -172,8 +120,60 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+## **requestsPost**
+> requestsPost($requestsPostRequest)
+
+
+
+### Example Implementation
+```php
+<?php
+// src/Acme/MyBundle/Api/RequestsApiInterface.php
+
+namespace Acme\MyBundle\Api;
+
+use OpenAPI\Server\Api\RequestsApiInterface;
+
+class RequestsApi implements RequestsApiInterface
+{
+
+    // ...
+
+    /**
+     * Implementation of RequestsApiInterface#requestsPost
+     */
+    public function requestsPost(RequestsPostRequest $requestsPostRequest, int &$responseCode, array &$responseHeaders): void
+    {
+        // Implement the operation ...
+    }
+
+    // ...
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **requestsPostRequest** | [**OpenAPI\Server\Model\RequestsPostRequest**](../Model/RequestsPostRequest.md)|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

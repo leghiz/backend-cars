@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\RequestRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,12 +13,9 @@ class Request
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    /**
-     * @var Collection<int, User>
-     */
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'requests')]
-    private Collection $account;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $account = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?CarModel $car_model = null;
@@ -39,37 +34,17 @@ class Request
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
-
-    public function __construct()
-    {
-        $this->account = new ArrayCollection();
-    }
-
     public function getId(): ?int
     {
         return $this->id;
     }
-
-    /**
-     * @return Collection<int, User>
-     */
-    public function getAccount(): Collection
+    public function getAccount(): ?User
     {
         return $this->account;
     }
-
-    public function addAccount(User $account): static
+    public function setAccount(?User $account): static
     {
-        if (!$this->account->contains($account)) {
-            $this->account->add($account);
-        }
-
-        return $this;
-    }
-
-    public function removeAccount(User $account): static
-    {
-        $this->account->removeElement($account);
+        $this->account = $account;
 
         return $this;
     }

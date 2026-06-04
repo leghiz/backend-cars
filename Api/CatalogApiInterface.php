@@ -46,6 +46,30 @@ interface CatalogApiInterface
 {
 
     /**
+     * Sets authentication method bearerAuth
+     *
+     * @param string|null $value Value of the bearerAuth authentication method.
+     *
+     * @return void
+     */
+    public function setbearerAuth(?string $value): void;
+
+    /**
+     * Operation catalogIdDelete
+     *
+     * @param  int $id   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return void
+     */
+    public function catalogIdDelete(
+        int $id,
+        int &$responseCode,
+        array &$responseHeaders
+    ): void;
+
+    /**
      * Operation catalogIdGet
      *
      * @param  int $id   (required)
@@ -59,6 +83,38 @@ interface CatalogApiInterface
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;
+
+    /**
+     * Operation catalogIdPatch
+     *
+     * @param  int $id   (required)
+     * @param  LotDetail $lotDetail   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return void
+     */
+    public function catalogIdPatch(
+        int $id,
+        LotDetail $lotDetail,
+        int &$responseCode,
+        array &$responseHeaders
+    ): void;
+
+    /**
+     * Operation catalogPost
+     *
+     * @param  LotDetail $lotDetail   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return void
+     */
+    public function catalogPost(
+        LotDetail $lotDetail,
+        int &$responseCode,
+        array &$responseHeaders
+    ): void;
 
     /**
      * Operation getCatalog

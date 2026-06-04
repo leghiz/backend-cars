@@ -19,5 +19,28 @@ services:
     App\:
         resource: '../src/'
 
+    App\Service\AuthApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'auth' }
+
+    App\Service\ProfileApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'profile' }
+
+    App\Service\RequestsApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'requests' }
+
+    App\Service\CatalogApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'catalog' }
+
+    App\Service\ReviewsApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'reviews' }
+
+    App\Service\AdminApiService:
+        tags:
+            - { name: 'open_api_server.api', api: 'admin' }
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

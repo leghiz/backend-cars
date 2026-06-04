@@ -48,8 +48,8 @@ services:
          - [setContainer,  ['@service_container']]
         tags: ['controller.service_arguments']
 
-    open_api_server.controller.reviews:
-        class: OpenAPI\Server\Controller\ReviewsController
+    open_api_server.controller.profile:
+        class: OpenAPI\Server\Controller\ProfileController
         calls:
          - [setSerializer, ['@open_api_server.service.serializer']]
          - [setValidator,  ['@open_api_server.service.validator']]
@@ -57,8 +57,17 @@ services:
          - [setContainer,  ['@service_container']]
         tags: ['controller.service_arguments']
 
-    open_api_server.controller.user:
-        class: OpenAPI\Server\Controller\UserController
+    open_api_server.controller.requests:
+        class: OpenAPI\Server\Controller\RequestsController
+        calls:
+         - [setSerializer, ['@open_api_server.service.serializer']]
+         - [setValidator,  ['@open_api_server.service.validator']]
+         - [setApiServer,  ['@open_api_server.api.api_server']]
+         - [setContainer,  ['@service_container']]
+        tags: ['controller.service_arguments']
+
+    open_api_server.controller.reviews:
+        class: OpenAPI\Server\Controller\ReviewsController
         calls:
          - [setSerializer, ['@open_api_server.service.serializer']]
          - [setValidator,  ['@open_api_server.service.validator']]

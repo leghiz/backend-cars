@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ProfileRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProfileRepository::class)]
@@ -25,6 +26,9 @@ class Profile
     #[ORM\OneToOne(inversedBy: 'profile', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $account = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $avatar_url = null;
 
     public function getId(): ?int
     {
@@ -75,6 +79,18 @@ class Profile
     public function setAccount(User $account): static
     {
         $this->account = $account;
+
+        return $this;
+    }
+
+    public function getAvatarUrl(): ?string
+    {
+        return $this->avatar_url;
+    }
+
+    public function setAvatarUrl(?string $avatar_url): static
+    {
+        $this->avatar_url = $avatar_url;
 
         return $this;
     }

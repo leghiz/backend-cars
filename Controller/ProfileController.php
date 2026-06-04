@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AdminController
+ * ProfileController
  * PHP version 8.1.1
  *
  * @category Class
@@ -35,28 +35,28 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Constraints as Assert;
-use OpenAPI\Server\Api\AdminApiInterface;
+use OpenAPI\Server\Api\ProfileApiInterface;
+use OpenAPI\Server\Model\Profile;
 use OpenAPI\Server\Model\ProfileResponse;
-use OpenAPI\Server\Model\UserListItem;
 
 /**
- * AdminController Class Doc Comment
+ * ProfileController Class Doc Comment
  *
  * @category Class
  * @package  OpenAPI\Server\Controller
  * @author   OpenAPI Generator team
  * @link     https://github.com/openapitools/openapi-generator
  */
-class AdminController extends Controller
+class ProfileController extends Controller
 {
 
     /**
-     * Operation adminUsersGet
+     * Operation profileGet
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function adminUsersGetAction(Request $request)
+    public function profileGetAction(Request $request)
     {
         // Figure out what data format to return to the client
         $produces = ['application/json'];
@@ -73,32 +73,10 @@ class AdminController extends Controller
         $securitybearerAuth = $request->headers->get('authorization');
 
         // Read out all input parameter values into variables
-        $page = $request->query->get('page', 1);
-        $limit = $request->query->get('limit', 10);
 
         // Use the default value if no value was provided
 
-        // Deserialize the input values that needs it
-        try {
-            $page = $this->deserialize($page, 'int', 'string');
-            $limit = $this->deserialize($limit, 'int', 'string');
-        } catch (SerializerRuntimeException $exception) {
-            return $this->createBadRequestResponse($exception->getMessage());
-        }
-
         // Validate the input values
-        $asserts = [];
-        $asserts[] = new Assert\Type("int");
-        $response = $this->validate($page, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-        $asserts = [];
-        $asserts[] = new Assert\Type("int");
-        $response = $this->validate($limit, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
 
 
         try {
@@ -111,10 +89,10 @@ class AdminController extends Controller
             $responseCode = 200;
             $responseHeaders = [];
 
-            $result = $handler->adminUsersGet($page, $limit, $responseCode, $responseHeaders);
+            $result = $handler->profileGet($responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'все пользователи системы',
+                200 => 'информация о пользователе и его заявках',
                 default => '',
             };
 
@@ -135,78 +113,12 @@ class AdminController extends Controller
     }
 
     /**
-     * Operation adminUsersIdDelete
+     * Operation profilePost
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function adminUsersIdDeleteAction(Request $request, $id)
-    {
-        // Handle authentication
-        // Authentication 'bearerAuth' required
-        // HTTP bearer authentication required
-        $securitybearerAuth = $request->headers->get('authorization');
-
-        // Read out all input parameter values into variables
-
-        // Use the default value if no value was provided
-
-        // Deserialize the input values that needs it
-        try {
-            $id = $this->deserialize($id, 'int', 'string');
-        } catch (SerializerRuntimeException $exception) {
-            return $this->createBadRequestResponse($exception->getMessage());
-        }
-
-        // Validate the input values
-        $asserts = [];
-        $asserts[] = new Assert\NotNull();
-        $asserts[] = new Assert\Type("int");
-        $response = $this->validate($id, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-
-
-        try {
-            $handler = $this->getApiHandler();
-
-            // Set authentication method 'bearerAuth'
-            $handler->setbearerAuth($securitybearerAuth);
-
-            // Make the call to the business logic
-            $responseCode = 204;
-            $responseHeaders = [];
-
-            $handler->adminUsersIdDelete($id, $responseCode, $responseHeaders);
-
-            $message = match($responseCode) {
-                204 => 'пользователь удален',
-                default => '',
-            };
-
-            return new Response(
-                '',
-                $responseCode,
-                array_merge(
-                    $responseHeaders,
-                    [
-                        'X-OpenAPI-Message' => $message
-                    ]
-                )
-            );
-        } catch (\Throwable $fallthrough) {
-            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
-        }
-    }
-
-    /**
-     * Operation adminUsersIdGet
-     *
-     * @param Request $request The Symfony request to handle.
-     * @return Response The Symfony response.
-     */
-    public function adminUsersIdGetAction(Request $request, $id)
+    public function profilePostAction(Request $request)
     {
         // Figure out what data format to return to the client
         $produces = ['application/json'];
@@ -223,21 +135,52 @@ class AdminController extends Controller
         $securitybearerAuth = $request->headers->get('authorization');
 
         // Read out all input parameter values into variables
+        $firstName = $request->request->get('firstName');
+        $lastName = $request->request->get('lastName');
+        $email = $request->request->get('email');
+        $phoneNumber = $request->request->get('phoneNumber');
+        $avatar = $request->files->get('avatar');
 
         // Use the default value if no value was provided
 
         // Deserialize the input values that needs it
         try {
-            $id = $this->deserialize($id, 'int', 'string');
+            $firstName = $this->deserialize($firstName, 'string', 'string');
+            $lastName = $this->deserialize($lastName, 'string', 'string');
+            $email = $this->deserialize($email, 'string', 'string');
+            $phoneNumber = $this->deserialize($phoneNumber, 'string', 'string');
         } catch (SerializerRuntimeException $exception) {
             return $this->createBadRequestResponse($exception->getMessage());
         }
 
         // Validate the input values
         $asserts = [];
-        $asserts[] = new Assert\NotNull();
-        $asserts[] = new Assert\Type("int");
-        $response = $this->validate($id, $asserts);
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($firstName, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($lastName, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($email, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($phoneNumber, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\File();
+        $response = $this->validate($avatar, $asserts);
         if ($response instanceof Response) {
             return $response;
         }
@@ -253,10 +196,10 @@ class AdminController extends Controller
             $responseCode = 200;
             $responseHeaders = [];
 
-            $result = $handler->adminUsersIdGet($id, $responseCode, $responseHeaders);
+            $result = $handler->profilePost($firstName, $lastName, $email, $phoneNumber, $avatar, $responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'профиль',
+                200 => 'профиль обновлен',
                 default => '',
             };
 
@@ -278,10 +221,10 @@ class AdminController extends Controller
 
     /**
      * Returns the handler for this API controller.
-     * @return AdminApiInterface
+     * @return ProfileApiInterface
      */
     public function getApiHandler()
     {
-        return $this->apiServer->getApiHandler('admin');
+        return $this->apiServer->getApiHandler('profile');
     }
 }

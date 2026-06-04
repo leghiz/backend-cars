@@ -4,7 +4,10 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**catalogIdDelete**](CatalogApiInterface.md#catalogIdDelete) | **DELETE** /catalog/{id} | 
 [**catalogIdGet**](CatalogApiInterface.md#catalogIdGet) | **GET** /catalog/{id} | 
+[**catalogIdPatch**](CatalogApiInterface.md#catalogIdPatch) | **PATCH** /catalog/{id} | 
+[**catalogPost**](CatalogApiInterface.md#catalogPost) | **POST** /catalog | 
 [**getCatalog**](CatalogApiInterface.md#getCatalog) | **GET** /catalog | 
 [**getCatalogFilters**](CatalogApiInterface.md#getCatalogFilters) | **GET** /catalog/filters | 
 
@@ -19,6 +22,58 @@ services:
             - { name: "open_api_server.api", api: "catalog" }
     # ...
 ```
+
+## **catalogIdDelete**
+> catalogIdDelete($id)
+
+
+
+### Example Implementation
+```php
+<?php
+// src/Acme/MyBundle/Api/CatalogApiInterface.php
+
+namespace Acme\MyBundle\Api;
+
+use OpenAPI\Server\Api\CatalogApiInterface;
+
+class CatalogApi implements CatalogApiInterface
+{
+
+    // ...
+
+    /**
+     * Implementation of CatalogApiInterface#catalogIdDelete
+     */
+    public function catalogIdDelete(int $id, int &$responseCode, array &$responseHeaders): void
+    {
+        // Implement the operation ...
+    }
+
+    // ...
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **int**|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 
 ## **catalogIdGet**
 > OpenAPI\Server\Model\LotDetail catalogIdGet($id)
@@ -69,6 +124,111 @@ No authorization required
 
  - **Content-Type**: Not defined
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+## **catalogIdPatch**
+> catalogIdPatch($id, $lotDetail)
+
+
+
+### Example Implementation
+```php
+<?php
+// src/Acme/MyBundle/Api/CatalogApiInterface.php
+
+namespace Acme\MyBundle\Api;
+
+use OpenAPI\Server\Api\CatalogApiInterface;
+
+class CatalogApi implements CatalogApiInterface
+{
+
+    // ...
+
+    /**
+     * Implementation of CatalogApiInterface#catalogIdPatch
+     */
+    public function catalogIdPatch(int $id, LotDetail $lotDetail, int &$responseCode, array &$responseHeaders): void
+    {
+        // Implement the operation ...
+    }
+
+    // ...
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **int**|  |
+ **lotDetail** | [**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+## **catalogPost**
+> catalogPost($lotDetail)
+
+
+
+### Example Implementation
+```php
+<?php
+// src/Acme/MyBundle/Api/CatalogApiInterface.php
+
+namespace Acme\MyBundle\Api;
+
+use OpenAPI\Server\Api\CatalogApiInterface;
+
+class CatalogApi implements CatalogApiInterface
+{
+
+    // ...
+
+    /**
+     * Implementation of CatalogApiInterface#catalogPost
+     */
+    public function catalogPost(LotDetail $lotDetail, int &$responseCode, array &$responseHeaders): void
+    {
+        // Implement the operation ...
+    }
+
+    // ...
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **lotDetail** | [**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

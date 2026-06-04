@@ -7,10 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+// ДОБАВИЛИ ИМПОРТЫ ДЛЯ СЕКЬЮРИТИ:
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User
+// ДОБАВИЛИ ИНТЕРФЕЙСЫ К КЛАССУ:
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -42,7 +46,7 @@ class User
     /**
      * @var Collection<int, Request>
      */
-    #[ORM\ManyToMany(targetEntity: Request::class, mappedBy: 'account')]
+    #[ORM\OneToMany(targetEntity: Request::class, mappedBy: 'account')]
     private Collection $requests;
 
     public function __construct()
@@ -111,7 +115,6 @@ class User
 
     public function setProfile(Profile $profile): static
     {
-        // set the owning side of the relation if necessary
         if ($profile->getAccount() !== $this) {
             $profile->setAccount($this);
         }
@@ -120,61 +123,50 @@ class User
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, Review>
-     */
     public function getReviews(): Collection
     {
         return $this->reviews;
     }
-
-    public function addReview(Review $review): static
+    public function setReviews(Collection $reviews): static
     {
-        if (!$this->reviews->contains($review)) {
-            $this->reviews->add($review);
-            $review->setAccount($this);
-        }
+        $this->reviews = $reviews;
 
         return $this;
     }
-
-    public function removeReview(Review $review): static
-    {
-        if ($this->reviews->removeElement($review)) {
-            // set the owning side to null (unless already changed)
-            if ($review->getAccount() === $this) {
-                $review->setAccount(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Request>
-     */
     public function getRequests(): Collection
     {
         return $this->requests;
     }
-
-    public function addRequest(Request $request): static
+    public function setRequests(Collection $requests): static
     {
-        if (!$this->requests->contains($request)) {
-            $this->requests->add($request);
-            $request->addAccount($this);
-        }
+        $this->requests = $requests;
 
         return $this;
     }
 
-    public function removeRequest(Request $request): static
+    public function getUserIdentifier(): string
     {
-        if ($this->requests->removeElement($request)) {
-            $request->removeAccount($this);
+        return (string) $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        $roles = [];
+        if ($this->role) {
+            $roleName = strtoupper($this->role->getName());
+            if (str_starts_with($roleName, 'ROLE_')) {
+                $roles[] = $roleName;
+            } else {
+                $roles[] = 'ROLE_' . $roleName;
+            }
         }
 
-        return $this;
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 }

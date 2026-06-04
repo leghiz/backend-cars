@@ -1,6 +1,6 @@
 <?php
 /**
- * AdminApiInterface
+ * ProfileApiInterface
  *
  * PHP version 8.1.1
  *
@@ -30,18 +30,18 @@
 namespace OpenAPI\Server\Api;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use OpenAPI\Server\Model\Profile;
 use OpenAPI\Server\Model\ProfileResponse;
-use OpenAPI\Server\Model\UserListItem;
 
 /**
- * AdminApiInterface Interface Doc Comment
+ * ProfileApiInterface Interface Doc Comment
  *
  * @category Interface
  * @package  OpenAPI\Server\Api
  * @author   OpenAPI Generator team
  * @link     https://github.com/openapitools/openapi-generator
  */
-interface AdminApiInterface
+interface ProfileApiInterface
 {
 
     /**
@@ -54,48 +54,37 @@ interface AdminApiInterface
     public function setbearerAuth(?string $value): void;
 
     /**
-     * Operation adminUsersGet
+     * Operation profileGet
      *
-     * @param  int $page   (optional, default to 1)
-     * @param  int $limit   (optional, default to 10)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
      * @return array|object|null
      */
-    public function adminUsersGet(
-        int $page,
-        int $limit,
+    public function profileGet(
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;
 
     /**
-     * Operation adminUsersIdDelete
+     * Operation profilePost
      *
-     * @param  int $id   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function adminUsersIdDelete(
-        int $id,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation adminUsersIdGet
-     *
-     * @param  int $id   (required)
+     * @param  string|null $firstName   (optional)
+     * @param  string|null $lastName   (optional)
+     * @param  string|null $email   (optional)
+     * @param  string|null $phoneNumber   (optional)
+     * @param  UploadedFile|null $avatar   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
      * @return array|object|null
      */
-    public function adminUsersIdGet(
-        int $id,
+    public function profilePost(
+        ?string $firstName,
+        ?string $lastName,
+        ?string $email,
+        ?string $phoneNumber,
+        ?UploadedFile $avatar,
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;

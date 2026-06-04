@@ -1,6 +1,6 @@
 <?php
 /**
- * UserApiInterface
+ * RequestsApiInterface
  *
  * PHP version 8.1.1
  *
@@ -30,20 +30,18 @@
 namespace OpenAPI\Server\Api;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use OpenAPI\Server\Model\Profile;
-use OpenAPI\Server\Model\ProfileResponse;
+use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use OpenAPI\Server\Model\RequestsPostRequest;
-use OpenAPI\Server\Model\ReviewsPostRequest;
 
 /**
- * UserApiInterface Interface Doc Comment
+ * RequestsApiInterface Interface Doc Comment
  *
  * @category Interface
  * @package  OpenAPI\Server\Api
  * @author   OpenAPI Generator team
  * @link     https://github.com/openapitools/openapi-generator
  */
-interface UserApiInterface
+interface RequestsApiInterface
 {
 
     /**
@@ -56,40 +54,36 @@ interface UserApiInterface
     public function setbearerAuth(?string $value): void;
 
     /**
-     * Operation profileGet
+     * Operation requestsIdDelete
      *
+     * @param  int $id   (required)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
-     * @return array|object|null
+     * @return void
      */
-    public function profileGet(
+    public function requestsIdDelete(
+        int $id,
         int &$responseCode,
         array &$responseHeaders
-    ): array|object|null;
+    ): void;
 
     /**
-     * Operation profilePost
+     * Operation requestsIdPatch
      *
-     * @param  string|null $firstName   (optional)
-     * @param  string|null $lastName   (optional)
-     * @param  string|null $email   (optional)
-     * @param  string|null $phoneNumber   (optional)
-     * @param  UploadedFile|null $avatar   (optional)
+     * @param  int $id   (required)
+     * @param  RequestsIdPatchRequest|null $requestsIdPatchRequest   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
-     * @return array|object|null
+     * @return void
      */
-    public function profilePost(
-        ?string $firstName,
-        ?string $lastName,
-        ?string $email,
-        ?string $phoneNumber,
-        ?UploadedFile $avatar,
+    public function requestsIdPatch(
+        int $id,
+        ?RequestsIdPatchRequest $requestsIdPatchRequest,
         int &$responseCode,
         array &$responseHeaders
-    ): array|object|null;
+    ): void;
 
     /**
      * Operation requestsPost
@@ -102,21 +96,6 @@ interface UserApiInterface
      */
     public function requestsPost(
         RequestsPostRequest $requestsPostRequest,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation reviewsPost
-     *
-     * @param  ReviewsPostRequest $reviewsPostRequest   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function reviewsPost(
-        ReviewsPostRequest $reviewsPostRequest,
         int &$responseCode,
         array &$responseHeaders
     ): void;

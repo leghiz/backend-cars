@@ -21,3 +21,17 @@
 #docs/*.md
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
+composer.json
+.gitignore
+README.md
+git_push.sh
+phpunit.xml.dist
+.travis.yml
+.php_cs.dist
+.coveralls.yml
+autoload.php
+OpenAPIServerBundle.php
+DependencyInjection/
+Service/
+Tests/
+test_config.yaml
