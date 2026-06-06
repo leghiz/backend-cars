@@ -6,13 +6,16 @@ use OpenAPI\Server\Api\ProfileApiInterface;
 use OpenAPI\Server\Model\ProfileResponse;
 use OpenAPI\Server\Model\Profile as OpenAPIProfile;
 use OpenAPI\Server\Model\Request as OpenAPIRequest;
+use OpenAPI\Server\Model\RequestLot;
 use App\Entity\User;
 use App\Entity\Profile as DbProfile;
+use App\Entity\Review as DbReview;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class ProfileApiService implements ProfileApiInterface
 {
@@ -22,7 +25,8 @@ class ProfileApiService implements ProfileApiInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
         private readonly ParameterBagInterface $parameterBag,
-        private readonly RequestStack $requestStack
+        private readonly RequestStack $requestStack,
+        private readonly JWTTokenManagerInterface $jwtManager
     ) {}
 
     public function setbearerAuth(?string $value): void
@@ -32,40 +36,59 @@ class ProfileApiService implements ProfileApiInterface
 
     public function profileGet(int &$responseCode, array &$responseHeaders): array|object|null
     {
-        /** @var User|null $currentUser */
-        $currentUser = $this->security->getUser();
-        if (!$currentUser) {
+        $user = $this->security->getUser();
+        if (!$user) {
             $responseCode = 401;
             return null;
         }
 
-        $dbProfile = $currentUser->getProfile();
+        $profile = $user->getProfile();
         $openApiProfile = new OpenAPIProfile([
-            'id' => $currentUser->getId(),
-            'firstName' => $dbProfile ? $dbProfile->getFirstName() : '',
-            'lastName' => $dbProfile ? $dbProfile->getLastName() : '',
-            'phoneNumber' => $dbProfile ? $dbProfile->getPhoneNumber() : '',
-            'avatarUrl' => $dbProfile ? $dbProfile->getAvatarUrl() : null,
-            'email' => $currentUser->getEmail(),
-            'isAdmin' => $currentUser->getRole()?->getName() === 'ROLE_ADMIN',
-            'activeRequestsCount' => $currentUser->getRequests()->filter(fn($r) => $r->getStatus() !== 'Решена')->count()
+            'id' => $user->getId(),
+            'firstName' => $profile?->getFirstName() ?? '',
+            'lastName' => $profile?->getLastName() ?? '',
+            'phoneNumber' => $profile?->getPhoneNumber() ?? '',
+            'avatarUrl' => $profile?->getAvatarUrl(),
+            'email' => $user->getEmail(),
+            'isAdmin' => $user->getRole()?->getName() === 'ROLE_ADMIN',
+            'activeRequestsCount' => $user->getRequests()->filter(fn($r) => $r->getStatus() !== 'Решена')->count()
         ]);
 
-        $openApiRequests = [];
-        foreach ($currentUser->getRequests() as $dbRequest) {
-            $openApiRequests[] = new OpenAPIRequest([
-                'id' => $dbRequest->getId(),
-                'carName' => $dbRequest->getCarName(),
-                'lot' => null,
-                'callTime' => $dbRequest->getCallTime()?->format('Y-m-d H:i:s'),
-                'comment' => $dbRequest->getComment(),
-                'isSolved' => $dbRequest->getStatus() === 'Решена',
-                'createdAt' => $dbRequest->getCreatedAt() ? \DateTime::createFromImmutable($dbRequest->getCreatedAt()) : null
+        $requests = [];
+        foreach ($user->getRequests() as $req) {
+            $lotShort = null;
+
+            if ($req->getCarModel()) {
+                $carModel = $req->getCarModel();
+
+                $existingReview = $this->entityManager->getRepository(DbReview::class)->findOneBy([
+                    'lot' => $carModel->getId()
+                ]);
+
+                if (!$existingReview) {
+                    $lotShort = new RequestLot([
+                        'id' => $carModel->getId(),
+                        'manufacturer' => 'Toyota',
+                        'model' => $carModel->getName(),
+                        'year' => 2026,
+                        'bodyNumber' => 'N/A'
+                    ]);
+                }
+            }
+
+            $requests[] = new OpenAPIRequest([
+                'id' => $req->getId(),
+                'carName' => $req->getCarName(),
+                'lot' => $lotShort,
+                'callTime' => $req->getCallTime()?->format('Y-m-d H:i:s'),
+                'comment' => $req->getComment(),
+                'isSolved' => $req->getStatus() === 'Решена',
+                'createdAt' => $req->getCreatedAt() ? \DateTime::createFromImmutable($req->getCreatedAt()) : null
             ]);
         }
 
         $responseCode = 200;
-        return new ProfileResponse(['user' => $openApiProfile, 'requests' => $openApiRequests]);
+        return new ProfileResponse(['user' => $openApiProfile, 'requests' => $requests]);
     }
 
     public function profilePost(
@@ -77,43 +100,38 @@ class ProfileApiService implements ProfileApiInterface
         int &$responseCode = 0,
         array &$responseHeaders = []
     ): array|object|null {
-        /** @var User|null $currentUser */
-        $currentUser = $this->security->getUser();
-        if (!$currentUser) {
+        $user = $this->security->getUser();
+        if (!$user) {
             $responseCode = 401;
             return null;
         }
 
-        $request = $this->requestStack->getCurrentRequest();
+        $req = $this->requestStack->getCurrentRequest();
+        $fName = $req->request->get('first_name') ?? $first_name;
+        $lName = $req->request->get('last_name') ?? $last_name;
+        $mail = $req->request->get('email') ?? $email;
+        $phone = $req->request->get('phone_number') ?? $phone_number;
+        $file = $req->files->get('avatar') ?? $avatar;
 
-        $fName = $request->request->get('first_name') ?? $first_name;
-        $lName = $request->request->get('last_name') ?? $last_name;
-        $mail  = $request->request->get('email') ?? $email;
-        $phone = $request->request->get('phone_number') ?? $phone_number;
-        $file  = $request->files->get('avatar') ?? $avatar;
-
-        $dbProfile = $currentUser->getProfile();
-        if (!$dbProfile) {
-            $dbProfile = new DbProfile();
-            $dbProfile->setAccount($currentUser);
-            $this->entityManager->persist($dbProfile);
+        $profile = $user->getProfile() ?: new DbProfile();
+        if (!$user->getProfile()) {
+            $profile->setAccount($user);
+            $this->entityManager->persist($profile);
         }
 
-        if ($mail) {
-            $currentUser->setEmail($mail);
-        }
-
-        if ($fName !== null) $dbProfile->setFirstName($fName);
-        if ($lName !== null) $dbProfile->setLastName($lName);
-        if ($phone !== null) $dbProfile->setPhoneNumber($phone);
+        $oldEmail = $user->getEmail();
+        if ($mail) $user->setEmail($mail);
+        if ($fName !== null) $profile->setFirstName($fName);
+        if ($lName !== null) $profile->setLastName($lName);
+        if ($phone !== null) $profile->setPhoneNumber($phone);
 
         if ($file instanceof UploadedFile) {
-            $uploadsDirectory = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/avatars';
-            $newFilename = uniqid() . '.' . $file->guessExtension();
+            $dir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/avatars';
+            $filename = uniqid() . '.' . $file->guessExtension();
             try {
-                $file->move($uploadsDirectory, $newFilename);
-                $dbProfile->setAvatarUrl('/uploads/avatars/' . $newFilename);
-            } catch (\Exception $e) {
+                $file->move($dir, $filename);
+                $profile->setAvatarUrl('/uploads/avatars/' . $filename);
+            } catch (\Exception) {
                 $responseCode = 500;
                 return null;
             }
@@ -121,16 +139,20 @@ class ProfileApiService implements ProfileApiInterface
 
         $this->entityManager->flush();
 
+        if ($mail && $mail !== $oldEmail) {
+            $responseHeaders['X-New-Auth-Token'] = $this->jwtManager->create($user);
+        }
+
         $responseCode = 200;
         return new OpenAPIProfile([
-            'id' => $currentUser->getId(),
-            'firstName' => $dbProfile->getFirstName(),
-            'lastName' => $dbProfile->getLastName(),
-            'phoneNumber' => $dbProfile->getPhoneNumber(),
-            'avatarUrl' => $dbProfile->getAvatarUrl(),
-            'email' => $currentUser->getEmail(),
-            'isAdmin' => $currentUser->getRole()?->getName() === 'ROLE_ADMIN',
-            'activeRequestsCount' => $currentUser->getRequests()->count()
+            'id' => $user->getId(),
+            'firstName' => $profile->getFirstName(),
+            'lastName' => $profile->getLastName(),
+            'phoneNumber' => $profile->getPhoneNumber(),
+            'avatarUrl' => $profile->getAvatarUrl(),
+            'email' => $user->getEmail(),
+            'isAdmin' => $user->getRole()?->getName() === 'ROLE_ADMIN',
+            'activeRequestsCount' => $user->getRequests()->count()
         ]);
     }
 }

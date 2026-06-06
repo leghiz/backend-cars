@@ -7,10 +7,6 @@ use OpenAPI\Server\Model\Review as OpenApiReview;
 use OpenAPI\Server\Model\ReviewsPostRequest;
 use App\Entity\Review as DbReview;
 use App\Entity\Lot;
-use App\Entity\Modification;
-use App\Entity\CarModel;
-use App\Entity\Manufacturer;
-use App\Entity\EngineVolume;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -30,6 +26,7 @@ class ReviewsApiService implements ReviewsApiInterface
     {
         $this->bearerToken = $value ?? '';
     }
+
     public function reviewsGet(
         int $page = 1,
         int $limit = 10,
@@ -39,7 +36,10 @@ class ReviewsApiService implements ReviewsApiInterface
         array &$responseHeaders = []
     ): array|object|null {
         $qb = $this->entityManager->getRepository(DbReview::class)->createQueryBuilder('r');
-        $qb->orderBy('r.rating', $ratingOrder)->addOrderBy('r.created_at', $dateOrder);
+
+        $qb->orderBy('r.rating', $ratingOrder)
+            ->addOrderBy('r.created_at', $dateOrder);
+
         $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
 
         $dbReviews = $qb->getQuery()->getResult();
@@ -48,12 +48,16 @@ class ReviewsApiService implements ReviewsApiInterface
         foreach ($dbReviews as $review) {
             $user = $review->getAccount();
             $profile = $user ? $user->getProfile() : null;
+            $lot = $review->getLot();
+            $modification = $lot?->getModification();
+            $model = $modification?->getModel();
+            $manufacturer = $model?->getManufacturer();
 
             $apiReviews[] = new OpenApiReview([
                 'id' => $review->getId(),
-                'lotId' => $review->getLot() ? $review->getLot()->getId() : null,
-                'manufacturer' => 'Toyota',
-                'model' => 'Camry',
+                'lotId' => $lot ? $lot->getId() : null,
+                'manufacturer' => $manufacturer ? $manufacturer->getName() : 'Не указан',
+                'model' => $model ? $model->getName() : 'Не указан',
                 'firstName' => $profile ? $profile->getFirstName() : 'Покупатель',
                 'lastName' => $profile ? $profile->getLastName() : '',
                 'avatarUrl' => $profile ? $profile->getAvatarUrl() : null,
@@ -66,6 +70,7 @@ class ReviewsApiService implements ReviewsApiInterface
         $responseCode = 200;
         return $apiReviews;
     }
+
     public function reviewsPost(
         ReviewsPostRequest $reviewsPostRequest,
         int &$responseCode,
@@ -82,44 +87,8 @@ class ReviewsApiService implements ReviewsApiInterface
         $lot = $this->entityManager->getRepository(Lot::class)->find($reviewsPostRequest->getLotId());
 
         if (!$lot) {
-            // 1. Производитель
-            $manufacturer = $this->entityManager->getRepository(Manufacturer::class)->findOneBy([]) ?? new Manufacturer();
-            if (!$manufacturer->getId()) {
-                $manufacturer->setName('Toyota');
-                $this->entityManager->persist($manufacturer);
-            }
-
-            $model = $this->entityManager->getRepository(CarModel::class)->findOneBy([]) ?? new CarModel();
-            if (!$model->getId()) {
-                $model->setName('Camry');
-                $model->setManufacturer($manufacturer);
-                $this->entityManager->persist($model);
-            }
-
-            $volume = $this->entityManager->getRepository(EngineVolume::class)->findOneBy([]) ?? new EngineVolume();
-            if (!$volume->getId()) {
-                $volume->setVolume(2.5);
-                $this->entityManager->persist($volume);
-            }
-
-            $this->entityManager->flush();
-
-            $modification = new Modification();
-            $modification->setModel($model);
-            $modification->setEngineVolume($volume);
-            $modification->setProductionYear(new \DateTime());
-            $modification->setDrive('Передний');
-            $modification->setTransmission('Автомат');
-            $this->entityManager->persist($modification);
-            $this->entityManager->flush();
-
-            $lot = new Lot();
-            $lot->setModification($modification);
-            $lot->setPrice("1500000");
-            $lot->setBodyNumber("AUTO_" . rand(1000, 9999));
-            $lot->setCreatedAt(new \DateTimeImmutable());
-            $this->entityManager->persist($lot);
-            $this->entityManager->flush();
+            $responseCode = 404;
+            return;
         }
 
         $review = new DbReview();

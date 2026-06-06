@@ -8,13 +8,16 @@ security:
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: email
+                property: id
 
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+        auth_public:
+            pattern: ^/auth/(login|register|verify)
+            stateless: true
         main:
             lazy: true
             provider: app_user_provider

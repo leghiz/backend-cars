@@ -6,7 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**catalogIdDelete**](CatalogApiInterface.md#catalogIdDelete) | **DELETE** /catalog/{id} | 
 [**catalogIdGet**](CatalogApiInterface.md#catalogIdGet) | **GET** /catalog/{id} | 
-[**catalogIdPatch**](CatalogApiInterface.md#catalogIdPatch) | **PATCH** /catalog/{id} | 
+[**catalogIdPost**](CatalogApiInterface.md#catalogIdPost) | **POST** /catalog/{id} | 
 [**catalogPost**](CatalogApiInterface.md#catalogPost) | **POST** /catalog | 
 [**getCatalog**](CatalogApiInterface.md#getCatalog) | **GET** /catalog | 
 [**getCatalogFilters**](CatalogApiInterface.md#getCatalogFilters) | **GET** /catalog/filters | 
@@ -127,8 +127,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 
-## **catalogIdPatch**
-> catalogIdPatch($id, $lotDetail)
+## **catalogIdPost**
+> OpenAPI\Server\Model\LotDetail catalogIdPost($id, $manufacturer, $model, $year, $price, $mileage, $engineVolume, $color, $transmission, $drive, $bodyNumber, $deletedImages, $newImages)
 
 
 
@@ -147,9 +147,9 @@ class CatalogApi implements CatalogApiInterface
     // ...
 
     /**
-     * Implementation of CatalogApiInterface#catalogIdPatch
+     * Implementation of CatalogApiInterface#catalogIdPost
      */
-    public function catalogIdPatch(int $id, LotDetail $lotDetail, int &$responseCode, array &$responseHeaders): void
+    public function catalogIdPost(int $id, ?string $manufacturer, ?string $model, ?int $year, ?float $price, ?int $mileage, ?float $engineVolume, ?string $color, ?string $transmission, ?string $drive, ?string $bodyNumber, ?array $deletedImages, ?array $newImages, int &$responseCode, array &$responseHeaders): array|object|null
     {
         // Implement the operation ...
     }
@@ -163,11 +163,22 @@ class CatalogApi implements CatalogApiInterface
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **int**|  |
- **lotDetail** | [**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)|  |
+ **manufacturer** | **string**|  | [optional]
+ **model** | **string**|  | [optional]
+ **year** | **int**|  | [optional]
+ **price** | **float**|  | [optional]
+ **mileage** | **int**|  | [optional]
+ **engineVolume** | **float**|  | [optional]
+ **color** | **string**|  | [optional]
+ **transmission** | **string**|  | [optional]
+ **drive** | **string**|  | [optional]
+ **bodyNumber** | **string**|  | [optional]
+ **deletedImages** | [**string**](../Model/string.md)|  | [optional]
+ **newImages** | **UploadedFile**|  | [optional]
 
 ### Return type
 
-void (empty response body)
+[**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)
 
 ### Authorization
 
@@ -175,13 +186,13 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Content-Type**: multipart/form-data
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 
 ## **catalogPost**
-> catalogPost($lotDetail)
+> OpenAPI\Server\Model\LotDetail catalogPost($manufacturer, $model, $year, $price, $mileage, $engineVolume, $color, $transmission, $drive, $bodyNumber, $images)
 
 
 
@@ -202,7 +213,7 @@ class CatalogApi implements CatalogApiInterface
     /**
      * Implementation of CatalogApiInterface#catalogPost
      */
-    public function catalogPost(LotDetail $lotDetail, int &$responseCode, array &$responseHeaders): void
+    public function catalogPost(?string $manufacturer, ?string $model, ?int $year, ?float $price, ?int $mileage, ?float $engineVolume, ?string $color, ?string $transmission, ?string $drive, ?string $bodyNumber, ?array $images, int &$responseCode, array &$responseHeaders): array|object|null
     {
         // Implement the operation ...
     }
@@ -215,11 +226,21 @@ class CatalogApi implements CatalogApiInterface
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **lotDetail** | [**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)|  |
+ **manufacturer** | **string**|  | [optional]
+ **model** | **string**|  | [optional]
+ **year** | **int**|  | [optional]
+ **price** | **float**|  | [optional]
+ **mileage** | **int**|  | [optional]
+ **engineVolume** | **float**|  | [optional]
+ **color** | **string**|  | [optional]
+ **transmission** | **string**|  | [optional]
+ **drive** | **string**|  | [optional]
+ **bodyNumber** | **string**|  | [optional]
+ **images** | **UploadedFile**|  | [optional]
 
 ### Return type
 
-void (empty response body)
+[**OpenAPI\Server\Model\LotDetail**](../Model/LotDetail.md)
 
 ### Authorization
 
@@ -227,8 +248,8 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Content-Type**: multipart/form-data
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

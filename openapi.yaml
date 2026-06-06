@@ -6,14 +6,14 @@ info:
 paths:
   /auth/register:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [email, password, first_name, last_name, phone_number]
+              required: [ email, password, first_name, last_name, phone_number ]
               properties:
                 email: { type: string, format: email }
                 password: { type: string, format: password }
@@ -26,14 +26,14 @@ paths:
 
   /auth/verify:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [email, code]
+              required: [ email, code ]
               properties:
                 email: { type: string }
                 code: { type: string }
@@ -43,14 +43,14 @@ paths:
 
   /auth/login:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [email, password]
+              required: [ email, password ]
               properties:
                 email: { type: string }
                 password: { type: string }
@@ -67,7 +67,7 @@ paths:
 
   /auth/change-password:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security:
         - bearerAuth: [ ]
       requestBody:
@@ -86,7 +86,7 @@ paths:
 
   /auth/forgot-password/request:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
@@ -102,7 +102,7 @@ paths:
 
   /auth/forgot-password/verify:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
@@ -125,7 +125,7 @@ paths:
 
   /auth/forgot-password/reset:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
@@ -142,9 +142,9 @@ paths:
 
   /profile:
     get:
-      tags: [Profile]
+      tags: [ Profile ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       responses:
         '200':
           description: информация о пользователе и его заявках
@@ -152,7 +152,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ProfileResponse' }
     post:
-      tags: [Profile]
+      tags: [ Profile ]
       security:
         - bearerAuth: [ ]
       requestBody:
@@ -175,9 +175,9 @@ paths:
 
   /admin/users:
     get:
-      tags: [Admin]
+      tags: [ Admin ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: page
           in: query
@@ -196,9 +196,9 @@ paths:
 
   /admin/users/{id}:
     get:
-      tags: [Admin]
+      tags: [ Admin ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -211,9 +211,9 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ProfileResponse' }
     delete:
-      tags: [Admin]
+      tags: [ Admin ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -225,9 +225,9 @@ paths:
 
   /requests:
     post:
-      tags: [Requests]
+      tags: [ Requests ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -244,9 +244,9 @@ paths:
 
   /requests/{id}:
     patch:
-      tags: [Requests]
+      tags: [ Requests ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -265,9 +265,9 @@ paths:
         '200':
           description: заявка обновлена
     delete:
-      tags: [Requests]
+      tags: [ Requests ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -280,7 +280,7 @@ paths:
   /catalog/filters:
     get:
       operationId: getCatalogFilters
-      tags: [Catalog]
+      tags: [ Catalog ]
       responses:
         '200':
           description: фильтры
@@ -292,7 +292,7 @@ paths:
   /catalog:
     get:
       operationId: getCatalog
-      tags: [Catalog]
+      tags: [ Catalog ]
       parameters:
         - name: page
           in: query
@@ -314,10 +314,10 @@ paths:
           schema: { type: integer }
         - name: transmission
           in: query
-          schema: { type: string, enum: ["Автомат", "Механика", "Робот", "Вариатор"] }
+          schema: { type: string, enum: [ "Автомат", "Механика", "Робот", "Вариатор" ] }
         - name: drive
           in: query
-          schema: { type: string, enum: ["Полный", "Передний", "Задний"] }
+          schema: { type: string, enum: [ "Полный", "Передний", "Задний" ] }
         - name: year
           in: query
           schema: { type: integer }
@@ -349,21 +349,39 @@ paths:
                 items:
                   $ref: '#/components/schemas/LotListItem'
     post:
-      tags: [Catalog]
+      tags: [ Catalog ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { $ref: '#/components/schemas/LotDetail' }
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                manufacturer: { type: string }
+                model: { type: string }
+                year: { type: integer }
+                price: { type: number }
+                mileage: { type: integer }
+                engineVolume: { type: number }
+                color: { type: string }
+                transmission: { type: string }
+                drive: { type: string }
+                bodyNumber: { type: string }
+                images:
+                  type: array
+                  items: { type: string, format: binary }
       responses:
         '201':
           description: машина добавлена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LotDetail' }
 
   /catalog/{id}:
     get:
-      tags: [Catalog]
+      tags: [ Catalog ]
       parameters:
         - name: id
           in: path
@@ -377,9 +395,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/LotDetail'
     delete:
-      tags: [Catalog]
+      tags: [ Catalog ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -388,10 +406,10 @@ paths:
       responses:
         '204':
           description: машина удалена
-    patch:
-      tags: [Catalog]
+    post:
+      tags: [ Catalog ]
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -400,15 +418,38 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { $ref: '#/components/schemas/LotDetail' }
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                manufacturer: { type: string }
+                model: { type: string }
+                year: { type: integer }
+                price: { type: number }
+                mileage: { type: integer }
+                engineVolume: { type: number }
+                color: { type: string }
+                transmission: { type: string }
+                drive: { type: string }
+                bodyNumber: { type: string }
+                deletedImages:
+                  type: array
+                  items: { type: string }
+                  nullable: true
+                newImages:
+                  type: array
+                  items: { type: string, format: binary }
+                  nullable: true
       responses:
         '200':
           description: данные машины изменены
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LotDetail' }
 
   /reviews:
     get:
-      tags: [Reviews]
+      tags: [ Reviews ]
       parameters:
         - name: page
           in: query
@@ -438,7 +479,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Review'
     post:
-      tags: [Reviews]
+      tags: [ Reviews ]
       security:
         - bearerAuth: [ ]
       requestBody:
@@ -509,8 +550,8 @@ components:
         car_models: { type: array, items: { $ref: '#/components/schemas/CarModel' } }
         colors: { type: array, items: { $ref: '#/components/schemas/Color' } }
         engine_volumes: { type: array, items: { $ref: '#/components/schemas/EngineVolume' } }
-        transmissions: { type: array, items: { type: string, enum: ["Автомат", "Механика", "Робот", "Вариатор"] } }
-        drive_types: { type: array, items: { type: string, enum: ["Полный", "Передний", "Задний"] } }
+        transmissions: { type: array, items: { type: string, enum: [ "Автомат", "Механика", "Робот", "Вариатор" ] } }
+        drive_types: { type: array, items: { type: string, enum: [ "Полный", "Передний", "Задний" ] } }
         years: { type: array, items: { type: integer } }
         price_range: { $ref: '#/components/schemas/PriceRange' }
         mileage_range: { $ref: '#/components/schemas/MileageRange' }

@@ -8,8 +8,10 @@ use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use App\Entity\Request as DbRequest;
 use App\Entity\User;
 use App\Entity\Lot;
+use App\Entity\CarModel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class RequestsApiService implements RequestsApiInterface
 {
@@ -17,9 +19,9 @@ class RequestsApiService implements RequestsApiInterface
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly Security $security
+        private readonly Security $security,
+        private readonly RequestStack $requestStack
     ) {
-
     }
 
     public function setbearerAuth(?string $value): void
@@ -32,9 +34,7 @@ class RequestsApiService implements RequestsApiInterface
         int &$responseCode,
         array &$responseHeaders
     ): void {
-        /** @var User|null $currentUser */
         $currentUser = $this->security->getUser();
-
         if (!$currentUser) {
             $responseCode = 401;
             return;
@@ -42,7 +42,7 @@ class RequestsApiService implements RequestsApiInterface
 
         $dbRequest = new DbRequest();
         $dbRequest->setAccount($currentUser);
-        $dbRequest->setCarName($requestsPostRequest->getCarName());
+        $dbRequest->setCarName($requestsPostRequest->getCarName() ?? '');
 
         if ($requestsPostRequest->getCallTime()) {
             try {
@@ -56,6 +56,14 @@ class RequestsApiService implements RequestsApiInterface
         $dbRequest->setStatus('Новая');
         $dbRequest->setCreatedAt(new \DateTimeImmutable());
 
+        $rawPayload = json_decode(file_get_contents('php://input'), true) ?? [];
+        $lotId = $rawPayload['lot_id'] ?? $rawPayload['lotId'] ?? null;
+
+        if ($lotId !== null) {
+            $carModelReference = $this->entityManager->getReference(CarModel::class, (int)$lotId);
+            $dbRequest->setCarModel($carModelReference);
+        }
+
         $this->entityManager->persist($dbRequest);
         $this->entityManager->flush();
 
@@ -68,14 +76,13 @@ class RequestsApiService implements RequestsApiInterface
         int &$responseCode,
         array &$responseHeaders
     ): void {
-        /** @var User|null $currentUser */
         $currentUser = $this->security->getUser();
-
         if (!$currentUser) {
             $responseCode = 401;
             return;
         }
 
+        /** @var DbRequest|null $dbRequest */
         $dbRequest = $this->entityManager->getRepository(DbRequest::class)->find($id);
 
         if (!$dbRequest) {
@@ -83,36 +90,30 @@ class RequestsApiService implements RequestsApiInterface
             return;
         }
 
-        $isAdmin = $currentUser->getRole() && $currentUser->getRole()->getName() === 'Admin';
+        $isAdmin = $currentUser->getRole() && $currentUser->getRole()->getName() === 'ROLE_ADMIN';
         if ($dbRequest->getAccount()->getId() !== $currentUser->getId() && !$isAdmin) {
             $responseCode = 403;
             return;
         }
 
-        if ($requestsIdPatchRequest === null) {
-            $responseCode = 200;
-            return;
-        }
+        $rawPayload = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        if ($requestsIdPatchRequest->getComment() !== null) {
+        if ($requestsIdPatchRequest?->getComment() !== null) {
             $dbRequest->setComment($requestsIdPatchRequest->getComment());
         }
 
-        if ($requestsIdPatchRequest->getIsSolved() !== null) {
-            $dbRequest->setStatus($requestsIdPatchRequest->getIsSolved() ? 'Решена' : 'Новая');
+        if ($requestsIdPatchRequest?->isIsSolved() !== null) {
+            $dbRequest->setStatus($requestsIdPatchRequest->isIsSolved() ? 'Решена' : 'Новая');
         }
 
-        if ($requestsIdPatchRequest->getLotId() !== null) {
-            $lot = $this->entityManager->getRepository(Lot::class)->find($requestsIdPatchRequest->getLotId());
-            if ($lot) {
-                if (method_exists($dbRequest, 'setLot')) {
-                    $dbRequest->setLot($lot);
-                }
-            }
+        $lotId = $requestsIdPatchRequest?->getLotId() ?? $rawPayload['lot_id'] ?? $rawPayload['lotId'] ?? null;
+
+        if ($lotId !== null) {
+            $carModelReference = $this->entityManager->getReference(CarModel::class, (int)$lotId);
+            $dbRequest->setCarModel($carModelReference);
         }
 
         $this->entityManager->flush();
-
         $responseCode = 200;
     }
     public function requestsIdDelete(
@@ -135,7 +136,7 @@ class RequestsApiService implements RequestsApiInterface
             return;
         }
 
-        $isAdmin = $currentUser->getRole() && $currentUser->getRole()->getName() === 'Admin';
+        $isAdmin = $currentUser->getRole() && $currentUser->getRole()->getName() === 'ROLE_ADMIN';
         if ($dbRequest->getAccount()->getId() !== $currentUser->getId() && !$isAdmin) {
             $responseCode = 403;
             return;

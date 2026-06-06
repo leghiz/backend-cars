@@ -53,12 +53,6 @@ class AuthApiService implements AuthApiInterface
         $roleRepository = $this->entityManager->getRepository(Role::class);
         $defaultRole = $roleRepository->findOneBy(['name' => 'ROLE_USER']);
 
-        if (!$defaultRole) {
-            $defaultRole = new Role();
-            $defaultRole->setName('User');
-            $this->entityManager->persist($defaultRole);
-        }
-
         $user->setRole($defaultRole);
 
         $profile = new Profile();
@@ -107,7 +101,10 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 200;
 
-        return new AuthLoginPost200Response([
+        return new
+
+
+        AuthLoginPost200Response([
             'token' => $token,
             'is_admin' => $isAdmin
         ]);

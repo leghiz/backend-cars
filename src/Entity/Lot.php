@@ -24,6 +24,9 @@ class Lot
     private ?string $price = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $arrival_date = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $sold_date = null;
 
     #[ORM\Column(length: 50)]
@@ -74,6 +77,18 @@ class Lot
     public function setPrice(string $price): static
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getArrivalDate(): ?\DateTime
+    {
+        return $this->arrival_date;
+    }
+
+    public function setArrivalDate(?\DateTime $arrival_date): static
+    {
+        $this->arrival_date = $arrival_date;
 
         return $this;
     }

@@ -85,36 +85,78 @@ interface CatalogApiInterface
     ): array|object|null;
 
     /**
-     * Operation catalogIdPatch
+     * Operation catalogIdPost
      *
      * @param  int $id   (required)
-     * @param  LotDetail $lotDetail   (required)
+     * @param  string|null $manufacturer   (optional)
+     * @param  string|null $model   (optional)
+     * @param  int|null $year   (optional)
+     * @param  float|null $price   (optional)
+     * @param  int|null $mileage   (optional)
+     * @param  float|null $engineVolume   (optional)
+     * @param  string|null $color   (optional)
+     * @param  string|null $transmission   (optional)
+     * @param  string|null $drive   (optional)
+     * @param  string|null $bodyNumber   (optional)
+     * @param  array|null $deletedImages   (optional)
+     * @param  array|null $newImages   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
-     * @return void
+     * @return array|object|null
      */
-    public function catalogIdPatch(
+    public function catalogIdPost(
         int $id,
-        LotDetail $lotDetail,
+        ?string $manufacturer,
+        ?string $model,
+        ?int $year,
+        ?float $price,
+        ?int $mileage,
+        ?float $engineVolume,
+        ?string $color,
+        ?string $transmission,
+        ?string $drive,
+        ?string $bodyNumber,
+        ?array $deletedImages,
+        ?array $newImages,
         int &$responseCode,
         array &$responseHeaders
-    ): void;
+    ): array|object|null;
 
     /**
      * Operation catalogPost
      *
-     * @param  LotDetail $lotDetail   (required)
+     * @param  string|null $manufacturer   (optional)
+     * @param  string|null $model   (optional)
+     * @param  int|null $year   (optional)
+     * @param  float|null $price   (optional)
+     * @param  int|null $mileage   (optional)
+     * @param  float|null $engineVolume   (optional)
+     * @param  string|null $color   (optional)
+     * @param  string|null $transmission   (optional)
+     * @param  string|null $drive   (optional)
+     * @param  string|null $bodyNumber   (optional)
+     * @param  array|null $images   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
-     * @return void
+     * @return array|object|null
      */
     public function catalogPost(
-        LotDetail $lotDetail,
+        ?string $manufacturer,
+        ?string $model,
+        ?int $year,
+        ?float $price,
+        ?int $mileage,
+        ?float $engineVolume,
+        ?string $color,
+        ?string $transmission,
+        ?string $drive,
+        ?string $bodyNumber,
+        ?array $images,
         int &$responseCode,
         array &$responseHeaders
-    ): void;
+    ): array|object|null;
 
     /**
      * Operation getCatalog
