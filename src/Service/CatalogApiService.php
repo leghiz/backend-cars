@@ -85,7 +85,8 @@ class CatalogApiService implements CatalogApiInterface
             $qb->leftJoin('l.modification', 'm')
                 ->leftJoin('m.model', 'cm')
                 ->leftJoin('cm.manufacturer', 'man')
-                ->leftJoin('m.engine_volume', 'ev');
+                ->leftJoin('m.engine_volume', 'ev')
+                ->leftJoin('l.background', 'b');
 
             if ($priceFrom !== null) {
                 $qb->andWhere('l.price >= :priceFrom')->setParameter('priceFrom', $priceFrom);
@@ -105,8 +106,7 @@ class CatalogApiService implements CatalogApiInterface
                 $qb->andWhere('cm.id = :modelId')->setParameter('modelId', $modelId);
             }
             if ($colorId !== null) {
-                $qb->leftJoin('l.background', 'b')
-                    ->leftJoin('b.color', 'col')
+                $qb->leftJoin('b.color', 'col')
                     ->andWhere('col.id = :colorId')->setParameter('colorId', $colorId);
             }
             if ($engineVolumeId !== null) {
@@ -117,6 +117,25 @@ class CatalogApiService implements CatalogApiInterface
             }
             if ($drive !== null) {
                 $qb->andWhere('m.drive = :drive')->setParameter('drive', $drive);
+            }
+
+            if ($search !== null && trim($search) !== '') {
+                $qb->andWhere('(LOWER(man.name) LIKE :search OR LOWER(cm.name) LIKE :search)')
+                    ->setParameter('search', '%' . mb_strtolower(trim($search)) . '%');
+            }
+
+            if ($year !== null) {
+                $qb->andWhere('m.production_year >= :yearStart')
+                    ->andWhere('m.production_year < :yearEnd')
+                    ->setParameter('yearStart', new \DateTime($year . '-01-01'))
+                    ->setParameter('yearEnd', new \DateTime(($year + 1) . '-01-01'));
+            }
+
+            if ($mileageFrom !== null) {
+                $qb->andWhere('b.mileage >= :mileageFrom')->setParameter('mileageFrom', $mileageFrom);
+            }
+            if ($mileageTo !== null) {
+                $qb->andWhere('b.mileage <= :mileageTo')->setParameter('mileageTo', $mileageTo);
             }
 
             $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);

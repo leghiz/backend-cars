@@ -14,10 +14,11 @@ use OpenAPI\Server\Model\AuthForgotPasswordVerifyPost200Response;
 use OpenAPI\Server\Model\AuthForgotPasswordResetPostRequest;
 use App\Entity\User;
 use App\Entity\Profile;
-use App\Entity\Role; // Добавили импорт сущности Role
+use App\Entity\Role;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 
 class AuthApiService implements AuthApiInterface
 {
@@ -26,7 +27,8 @@ class AuthApiService implements AuthApiInterface
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
-        private readonly JWTTokenManagerInterface $jwtManager
+        private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly JWTEncoderInterface $jwtEncoder
     ) {
 
     }
@@ -150,18 +152,32 @@ class AuthApiService implements AuthApiInterface
             return null;
         }
 
-        $resetToken = bin2hex(random_bytes(16));
+        $resetToken = $this->jwtEncoder->encode([
+            'email' => $user->getEmail(),
+            'purpose' => 'password_reset',
+            'exp' => time() + 900,
+        ]);
 
         $responseCode = 200;
 
         return new AuthForgotPasswordVerifyPost200Response([
-            'reset_token' => $resetToken
+            'resetToken' => $resetToken
         ]);
     }
     public function authForgotPasswordResetPost(AuthForgotPasswordResetPostRequest $authForgotPasswordResetPostRequest, int &$responseCode, array &$responseHeaders): void
     {
-        $user = $this->entityManager->getRepository(User::class)->findOneBy([]);
+        try {
+            $payload = $this->jwtEncoder->decode($authForgotPasswordResetPostRequest->getResetToken());
+        } catch (\Throwable $e) {
+            $payload = null;
+        }
 
+        if (!$payload || ($payload['purpose'] ?? null) !== 'password_reset' || empty($payload['email'])) {
+            $responseCode = 400;
+            return;
+        }
+
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $payload['email']]);
         if (!$user) {
             $responseCode = 400;
             return;

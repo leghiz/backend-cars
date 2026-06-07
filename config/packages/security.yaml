@@ -16,7 +16,7 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         auth_public:
-            pattern: ^/auth/(login|register|verify)
+            pattern: ^/auth/(login|register|verify|forgot-password)
             stateless: true
         main:
             lazy: true
@@ -35,6 +35,7 @@ security:
         - { path: ^/auth/register, roles: PUBLIC_ACCESS }
         - { path: ^/auth/verify, roles: PUBLIC_ACCESS }
         - { path: ^/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/auth/forgot-password, roles: PUBLIC_ACCESS }
 
         - { path: ^/catalog/filters, methods: [ GET ], roles: PUBLIC_ACCESS }
         - { path: ^/catalog, methods: [ GET ], roles: PUBLIC_ACCESS }

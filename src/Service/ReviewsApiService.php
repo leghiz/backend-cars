@@ -10,6 +10,7 @@ use App\Entity\Lot;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class ReviewsApiService implements ReviewsApiInterface
 {
@@ -17,7 +18,8 @@ class ReviewsApiService implements ReviewsApiInterface
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly Security $security
+        private readonly Security $security,
+        private readonly RequestStack $requestStack
     ) {
 
     }
@@ -35,8 +37,19 @@ class ReviewsApiService implements ReviewsApiInterface
         int &$responseCode = 0,
         array &$responseHeaders = []
     ): array|object|null {
+
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request) {
+            $dateOrder = $request->query->get('date_order', $dateOrder);
+            $ratingOrder = $request->query->get('rating_order', $ratingOrder);
+        }
+
+        $dateOrder = strtolower((string)$dateOrder) === 'asc' ? 'ASC' : 'DESC';
+        $ratingOrder = strtolower((string)$ratingOrder) === 'asc' ? 'ASC' : 'DESC';
+
         $qb = $this->entityManager->getRepository(DbReview::class)->createQueryBuilder('r');
 
+        // Приоритет: сначала по рейтингу, при равном рейтинге — по дате.
         $qb->orderBy('r.rating', $ratingOrder)
             ->addOrderBy('r.created_at', $dateOrder);
 
