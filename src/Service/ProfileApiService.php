@@ -10,6 +10,8 @@ use OpenAPI\Server\Model\RequestLot;
 use App\Entity\User;
 use App\Entity\Profile as DbProfile;
 use App\Entity\Review as DbReview;
+use App\Entity\Lot; // Сущность Lot уже импортирована
+// use App\Entity\CarModel; // Больше не требуется
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -58,18 +60,22 @@ class ProfileApiService implements ProfileApiInterface
         foreach ($user->getRequests() as $req) {
             $lotShort = null;
 
-            if ($req->getCarModel()) {
-                $carModel = $req->getCarModel();
+            if ($req->getLot()) {
+                $lot = $req->getLot();
 
                 $existingReview = $this->entityManager->getRepository(DbReview::class)->findOneBy([
-                    'lot' => $carModel->getId()
+                    'lot' => $lot->getId()
                 ]);
 
                 if (!$existingReview) {
+                    $modelName = method_exists($lot, 'getCarModel') && $lot->getCarModel()
+                        ? $lot->getCarModel()->getName()
+                        : $req->getCarName();
+
                     $lotShort = new RequestLot([
-                        'id' => $carModel->getId(),
+                        'id' => $lot->getId(),
                         'manufacturer' => 'Toyota',
-                        'model' => $carModel->getName(),
+                        'model' => $modelName,
                         'year' => 2026,
                         'bodyNumber' => 'N/A'
                     ]);

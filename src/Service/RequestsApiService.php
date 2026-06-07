@@ -7,8 +7,8 @@ use OpenAPI\Server\Model\RequestsPostRequest;
 use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use App\Entity\Request as DbRequest;
 use App\Entity\User;
-use App\Entity\Lot;
-use App\Entity\CarModel;
+use App\Entity\Lot; // Используем Lot
+// use App\Entity\CarModel; // Этот импорт больше не нужен
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -60,8 +60,8 @@ class RequestsApiService implements RequestsApiInterface
         $lotId = $rawPayload['lot_id'] ?? $rawPayload['lotId'] ?? null;
 
         if ($lotId !== null) {
-            $carModelReference = $this->entityManager->getReference(CarModel::class, (int)$lotId);
-            $dbRequest->setCarModel($carModelReference);
+            $lotReference = $this->entityManager->getReference(Lot::class, (int)$lotId);
+            $dbRequest->setLot($lotReference);
         }
 
         $this->entityManager->persist($dbRequest);
@@ -109,13 +109,14 @@ class RequestsApiService implements RequestsApiInterface
         $lotId = $requestsIdPatchRequest?->getLotId() ?? $rawPayload['lot_id'] ?? $rawPayload['lotId'] ?? null;
 
         if ($lotId !== null) {
-            $carModelReference = $this->entityManager->getReference(CarModel::class, (int)$lotId);
-            $dbRequest->setCarModel($carModelReference);
+            $lotReference = $this->entityManager->getReference(Lot::class, (int)$lotId);
+            $dbRequest->setLot($lotReference);
         }
 
         $this->entityManager->flush();
         $responseCode = 200;
     }
+
     public function requestsIdDelete(
         int $id,
         int &$responseCode,

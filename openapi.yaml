@@ -279,7 +279,6 @@ paths:
 
   /catalog/filters:
     get:
-      operationId: getCatalogFilters
       tags: [ Catalog ]
       responses:
         '200':
@@ -291,7 +290,6 @@ paths:
 
   /catalog:
     get:
-      operationId: getCatalog
       tags: [ Catalog ]
       parameters:
         - name: page
@@ -369,6 +367,8 @@ paths:
                 transmission: { type: string }
                 drive: { type: string }
                 bodyNumber: { type: string }
+                isSold: { type: boolean, default: false }
+                soldData: { type: string, format: date-time, nullable: true }
                 images:
                   type: array
                   items: { type: string, format: binary }
@@ -432,6 +432,8 @@ paths:
                 transmission: { type: string }
                 drive: { type: string }
                 bodyNumber: { type: string }
+                isSold: { type: boolean, default: false }
+                soldData: { type: string, format: date-time, nullable: true }
                 deletedImages:
                   type: array
                   items: { type: string }

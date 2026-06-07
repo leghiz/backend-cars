@@ -16,10 +16,6 @@ class Request
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'requests')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $account = null;
-
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    private ?CarModel $car_model = null;
-
     #[ORM\Column(length: 255)]
     private ?string $car_name = null;
 
@@ -34,6 +30,10 @@ class Request
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
+
+    #[ORM\OneToOne(inversedBy: 'request')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
+    private ?Lot $lot = null;
     public function getId(): ?int
     {
         return $this->id;
@@ -45,18 +45,6 @@ class Request
     public function setAccount(?User $account): static
     {
         $this->account = $account;
-
-        return $this;
-    }
-
-    public function getCarModel(): ?CarModel
-    {
-        return $this->car_model;
-    }
-
-    public function setCarModel(?CarModel $car_model): static
-    {
-        $this->car_model = $car_model;
 
         return $this;
     }
@@ -117,6 +105,18 @@ class Request
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getLot(): ?Lot
+    {
+        return $this->lot;
+    }
+
+    public function setLot(?Lot $lot): static
+    {
+        $this->lot = $lot;
 
         return $this;
     }

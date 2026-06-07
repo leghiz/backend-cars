@@ -49,4 +49,17 @@ class CarMedia
 
         return $this;
     }
+
+    #[ORM\PostRemove]
+    public function deletePhysicalFile(): void
+    {
+        if ($this->file_path) {
+            $publicDir = dirname(__DIR__, 2) . '/public';
+            $absolutePath = realpath($publicDir . $this->file_path);
+
+            if ($absolutePath && is_file($absolutePath)) {
+                unlink($absolutePath);
+            }
+        }
+    }
 }

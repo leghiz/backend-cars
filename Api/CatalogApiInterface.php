@@ -55,6 +55,62 @@ interface CatalogApiInterface
     public function setbearerAuth(?string $value): void;
 
     /**
+     * Operation catalogFiltersGet
+     *
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return array|object|null
+     */
+    public function catalogFiltersGet(
+        int &$responseCode,
+        array &$responseHeaders
+    ): array|object|null;
+
+    /**
+     * Operation catalogGet
+     *
+     * @param  int $page   (optional, default to 1)
+     * @param  int $limit   (optional, default to 10)
+     * @param  string|null $search   (optional)
+     * @param  int|null $manufacturerId   (optional)
+     * @param  int|null $modelId   (optional)
+     * @param  int|null $colorId   (optional)
+     * @param  string|null $transmission   (optional)
+     * @param  string|null $drive   (optional)
+     * @param  int|null $year   (optional)
+     * @param  float|null $priceFrom   (optional)
+     * @param  float|null $priceTo   (optional)
+     * @param  int|null $mileageFrom   (optional)
+     * @param  int|null $mileageTo   (optional)
+     * @param  int|null $engineVolumeId   (optional)
+     * @param  bool|null $isSold   (optional)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return array|object|null
+     */
+    public function catalogGet(
+        int $page,
+        int $limit,
+        ?string $search,
+        ?int $manufacturerId,
+        ?int $modelId,
+        ?int $colorId,
+        ?string $transmission,
+        ?string $drive,
+        ?int $year,
+        ?float $priceFrom,
+        ?float $priceTo,
+        ?int $mileageFrom,
+        ?int $mileageTo,
+        ?int $engineVolumeId,
+        ?bool $isSold,
+        int &$responseCode,
+        array &$responseHeaders
+    ): array|object|null;
+
+    /**
      * Operation catalogIdDelete
      *
      * @param  int $id   (required)
@@ -98,6 +154,8 @@ interface CatalogApiInterface
      * @param  string|null $transmission   (optional)
      * @param  string|null $drive   (optional)
      * @param  string|null $bodyNumber   (optional)
+     * @param  bool $isSold   (optional, default to false)
+     * @param  \DateTime|null $soldData   (optional)
      * @param  array|null $deletedImages   (optional)
      * @param  array|null $newImages   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
@@ -117,6 +175,8 @@ interface CatalogApiInterface
         ?string $transmission,
         ?string $drive,
         ?string $bodyNumber,
+        bool $isSold,
+        ?\DateTime $soldData,
         ?array $deletedImages,
         ?array $newImages,
         int &$responseCode,
@@ -136,6 +196,8 @@ interface CatalogApiInterface
      * @param  string|null $transmission   (optional)
      * @param  string|null $drive   (optional)
      * @param  string|null $bodyNumber   (optional)
+     * @param  bool $isSold   (optional, default to false)
+     * @param  \DateTime|null $soldData   (optional)
      * @param  array|null $images   (optional)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
@@ -153,63 +215,9 @@ interface CatalogApiInterface
         ?string $transmission,
         ?string $drive,
         ?string $bodyNumber,
+        bool $isSold,
+        ?\DateTime $soldData,
         ?array $images,
-        int &$responseCode,
-        array &$responseHeaders
-    ): array|object|null;
-
-    /**
-     * Operation getCatalog
-     *
-     * @param  int $page   (optional, default to 1)
-     * @param  int $limit   (optional, default to 10)
-     * @param  string|null $search   (optional)
-     * @param  int|null $manufacturerId   (optional)
-     * @param  int|null $modelId   (optional)
-     * @param  int|null $colorId   (optional)
-     * @param  string|null $transmission   (optional)
-     * @param  string|null $drive   (optional)
-     * @param  int|null $year   (optional)
-     * @param  float|null $priceFrom   (optional)
-     * @param  float|null $priceTo   (optional)
-     * @param  int|null $mileageFrom   (optional)
-     * @param  int|null $mileageTo   (optional)
-     * @param  int|null $engineVolumeId   (optional)
-     * @param  bool|null $isSold   (optional)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return array|object|null
-     */
-    public function getCatalog(
-        int $page,
-        int $limit,
-        ?string $search,
-        ?int $manufacturerId,
-        ?int $modelId,
-        ?int $colorId,
-        ?string $transmission,
-        ?string $drive,
-        ?int $year,
-        ?float $priceFrom,
-        ?float $priceTo,
-        ?int $mileageFrom,
-        ?int $mileageTo,
-        ?int $engineVolumeId,
-        ?bool $isSold,
-        int &$responseCode,
-        array &$responseHeaders
-    ): array|object|null;
-
-    /**
-     * Operation getCatalogFilters
-     *
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return array|object|null
-     */
-    public function getCatalogFilters(
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;

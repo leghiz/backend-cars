@@ -69,6 +69,18 @@ open_api_server_auth_authverifypost:
         _controller: open_api_server.controller.auth::authVerifyPostAction
 
 # catalog
+open_api_server_catalog_catalogfiltersget:
+    path:     /catalog/filters
+    methods:  [GET]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogFiltersGetAction
+
+open_api_server_catalog_catalogget:
+    path:     /catalog
+    methods:  [GET]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogGetAction
+
 open_api_server_catalog_catalogiddelete:
     path:     /catalog/{id}
     methods:  [DELETE]
@@ -98,18 +110,6 @@ open_api_server_catalog_catalogpost:
     methods:  [POST]
     defaults:
         _controller: open_api_server.controller.catalog::catalogPostAction
-
-open_api_server_catalog_getcatalog:
-    path:     /catalog
-    methods:  [GET]
-    defaults:
-        _controller: open_api_server.controller.catalog::getCatalogAction
-
-open_api_server_catalog_getcatalogfilters:
-    path:     /catalog/filters
-    methods:  [GET]
-    defaults:
-        _controller: open_api_server.controller.catalog::getCatalogFiltersAction
 
 # profile
 open_api_server_profile_profileget:

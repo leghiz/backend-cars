@@ -18,8 +18,8 @@ class Review
     #[ORM\JoinColumn(nullable: false)]
     private ?User $account = null;
 
-    #[ORM\OneToOne(inversedBy: 'review', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\OneToOne(inversedBy: 'review')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
     private ?Lot $lot = null;
 
     #[ORM\Column(type: Types::SMALLINT)]

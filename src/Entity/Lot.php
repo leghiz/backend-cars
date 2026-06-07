@@ -38,14 +38,20 @@ class Lot
     #[ORM\OneToOne(mappedBy: 'lot', cascade: ['persist', 'remove'])]
     private ?Background $background = null;
 
+    #[ORM\OneToOne(mappedBy: 'lot', cascade: ['persist', 'remove'])]
+    private ?Review $review = null;
+
+    #[ORM\OneToOne(mappedBy: 'lot', cascade: ['persist', 'remove'])]
+    private ?Request $request = null;
+
     /**
      * @var Collection<int, CarMedia>
      */
-    #[ORM\OneToMany(targetEntity: CarMedia::class, mappedBy: 'lot')]
+    #[ORM\OneToMany(targetEntity: CarMedia::class, mappedBy: 'lot', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $carMedia;
 
-    #[ORM\OneToOne(mappedBy: 'lot', cascade: ['persist', 'remove'])]
-    private ?Review $review = null;
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $is_sold = null;
 
     public function __construct()
     {
@@ -189,6 +195,40 @@ class Lot
         }
 
         $this->review = $review;
+
+        return $this;
+    }
+
+    public function getRequest(): ?Request
+    {
+        return $this->request;
+    }
+
+    public function setRequest(?Request $request): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($request === null && $this->request !== null) {
+            $this->request->setLot(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($request !== null && $request->getLot() !== $this) {
+            $request->setLot($this);
+        }
+
+        $this->request = $request;
+
+        return $this;
+    }
+
+    public function isSold(): ?bool
+    {
+        return $this->is_sold;
+    }
+
+    public function setIsSold(bool $is_sold): static
+    {
+        $this->is_sold = $is_sold;
 
         return $this;
     }
