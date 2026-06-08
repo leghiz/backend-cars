@@ -18,10 +18,13 @@ use App\Entity\User;
 use App\Entity\Profile;
 use App\Entity\Role;
 use App\Entity\RefreshToken;
+use App\Entity\VerificationCode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use App\Message\SendEmailMessage;
 
 class AuthApiService implements AuthApiInterface
 {
@@ -31,7 +34,8 @@ class AuthApiService implements AuthApiInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
         private readonly JWTTokenManagerInterface $jwtManager,
-        private readonly JWTEncoderInterface $jwtEncoder
+        private readonly JWTEncoderInterface $jwtEncoder,
+        private readonly MessageBusInterface $messageBus
     ) {
     }
 
@@ -57,19 +61,32 @@ class AuthApiService implements AuthApiInterface
 
         $roleRepository = $this->entityManager->getRepository(Role::class);
         $defaultRole = $roleRepository->findOneBy(['name' => 'ROLE_USER']);
-
         $user->setRole($defaultRole);
 
         $profile = new Profile();
         $profile->setFirstName($authRegisterPostRequest->getFirstName());
         $profile->setLastName($authRegisterPostRequest->getLastName());
         $profile->setPhoneNumber($authRegisterPostRequest->getPhoneNumber());
-
         $user->setProfile($profile);
 
         $this->entityManager->persist($user);
         $this->entityManager->persist($profile);
+
+        $code = (string) random_int(100000, 999999);
+
+        $verification = new VerificationCode();
+        $verification->setAccount($user);
+        $verification->setCode($code);
+        $verification->setExpiresAt((new \DateTimeImmutable())->modify('+1 hour'));
+
+        $this->entityManager->persist($verification);
         $this->entityManager->flush();
+
+        $this->messageBus->dispatch(new SendEmailMessage(
+            $user->getEmail(),
+            'Подтверждение регистрации',
+            $code
+        ));
 
         $responseCode = 201;
     }
@@ -83,12 +100,25 @@ class AuthApiService implements AuthApiInterface
             return;
         }
 
-        if ($authVerifyPostRequest->getCode() !== '123456') {
+        $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
+        $verification = $verificationRepo->findOneBy([
+            'account' => $user,
+            'code' => $authVerifyPostRequest->getCode()
+        ]);
+
+        if (!$verification) {
+            $responseCode = 400;
+            return;
+        }
+
+        if ($verification->getExpiresAt() < new \DateTime()) {
             $responseCode = 400;
             return;
         }
 
         $user->setIsVerified(true);
+
+        $this->entityManager->remove($verification);
         $this->entityManager->flush();
 
         $responseCode = 200;
@@ -100,6 +130,11 @@ class AuthApiService implements AuthApiInterface
 
         if (!$user || !password_verify($authLoginPostRequest->getPassword(), $user->getPassword())) {
             $responseCode = 401;
+            return null;
+        }
+
+        if (!$user->isVerified()) {
+            $responseCode = 403;
             return null;
         }
 
@@ -150,10 +185,34 @@ class AuthApiService implements AuthApiInterface
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordRequestPostRequest->getEmail()]);
 
-        if (!$user) {
-            $responseCode = 200;
+        if (!$user || !$user->isVerified()) {
+            $responseCode = 400;
             return;
         }
+
+        $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
+        $oldCodes = $verificationRepo->findBy(['account' => $user]);
+        foreach ($oldCodes as $oldCode) {
+            $this->entityManager->remove($oldCode);
+        }
+        $this->entityManager->flush();
+
+        $code = (string) random_int(100000, 999999);
+
+        $resetCode = new VerificationCode();
+        $resetCode->setAccount($user);
+        $resetCode->setCode($code);
+        $resetCode->setExpiresAt((new \DateTimeImmutable())->modify('+15 minutes'));
+
+        $this->entityManager->persist($resetCode);
+        $this->entityManager->flush();
+
+        $this->messageBus->dispatch(new SendEmailMessage(
+            $user->getEmail(),
+            'Восстановление пароля',
+            $code
+        ));
+
 
         $responseCode = 200;
     }
@@ -162,10 +221,24 @@ class AuthApiService implements AuthApiInterface
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordVerifyPostRequest->getEmail()]);
 
-        if (!$user || $authForgotPasswordVerifyPostRequest->getCode() !== '111111') {
+        if (!$user) {
             $responseCode = 400;
             return null;
         }
+
+        $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
+        $verification = $verificationRepo->findOneBy([
+            'account' => $user,
+            'code' => $authForgotPasswordVerifyPostRequest->getCode()
+        ]);
+
+        if (!$verification || $verification->getExpiresAt() < new \DateTime()) {
+            $responseCode = 400;
+            return null;
+        }
+
+        $this->entityManager->remove($verification);
+        $this->entityManager->flush();
 
         $resetToken = $this->jwtEncoder->encode([
             'email' => $user->getEmail(),

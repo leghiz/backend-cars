@@ -16,6 +16,16 @@ class VerificationCodeRepository extends ServiceEntityRepository
         parent::__construct($registry, VerificationCode::class);
     }
 
+    public function deleteExpiredCodes(): int
+    {
+        return $this->createQueryBuilder('vc')
+            ->delete()
+            ->where('vc.expiresAt < :now')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->execute();
+    }
+
     //    /**
     //     * @return VerificationCode[] Returns an array of VerificationCode objects
     //     */

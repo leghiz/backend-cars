@@ -35,7 +35,9 @@
         "nelmio/cors-bundle": "^2.6",
         "symfony/mailer": "^8.1",
         "symfony/http-client": "^8.1",
-        "gesdinet/jwt-refresh-token-bundle": "^2.0"
+        "gesdinet/jwt-refresh-token-bundle": "^2.0",
+        "symfony/messenger": "^8.1",
+        "symfony/doctrine-messenger": "^8.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5|^11.0",

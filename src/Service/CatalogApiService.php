@@ -10,8 +10,10 @@ use OpenAPI\Server\Model\Manufacturer as OpenApiManufacturer;
 use OpenAPI\Server\Model\CarModel as OpenApiCarModel;
 use OpenAPI\Server\Model\Color as OpenApiColor;
 use OpenAPI\Server\Model\EngineVolume as OpenApiEngineVolume;
+use OpenAPI\Server\Model\Review as OpenApiReview;
 use OpenAPI\Server\Model\LotListItem;
 use OpenAPI\Server\Model\LotDetail;
+use OpenAPI\Server\Model\LotDetailReview;
 use App\Entity\Lot;
 use App\Entity\Modification;
 use App\Entity\Background;
@@ -21,6 +23,7 @@ use App\Entity\CarModel;
 use App\Entity\Color;
 use App\Entity\EngineVolume;
 use App\Entity\User;
+use App\Entity\Review;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -455,7 +458,7 @@ class CatalogApiService implements CatalogApiInterface
                             $this->entityManager->persist($carMedia);
                             $savedImagesPaths[] = $this->formatImagePath($filePath);
                         } catch (\Exception $e) {
-                            error_log("catalogPost File Save Error: " . $e->getMessage());
+
                         }
                     }
                 }
@@ -526,6 +529,39 @@ class CatalogApiService implements CatalogApiInterface
             $images = [$this->formatImagePath('/DefaultImage.png')];
         }
 
+        $reviewEntity = $this->entityManager->getRepository(Review::class)->findOneBy(['lot' => $lot]);
+        $apiReview = null;
+
+        if ($reviewEntity) {
+            $author = method_exists($reviewEntity, 'getUser') ? $reviewEntity->getUser() : null;
+
+            $dbCreatedAt = method_exists($reviewEntity, 'getCreatedAt') ? $reviewEntity->getCreatedAt() : null;
+            $createdAt = null;
+
+            if ($dbCreatedAt instanceof \DateTimeImmutable) {
+                $createdAt = \DateTime::createFromImmutable($dbCreatedAt);
+            } elseif ($dbCreatedAt instanceof \DateTime) {
+                $createdAt = $dbCreatedAt;
+            }
+
+            if (!$createdAt) {
+                $createdAt = new \DateTime();
+            }
+
+            $apiReview = new LotDetailReview([
+                'id' => $reviewEntity->getId(),
+                'lotId' => $lot->getId(),
+                'manufacturer' => $manufacturer ? $manufacturer->getName() : 'Не указан',
+                'model' => $model ? $model->getName() : 'Не указан',
+                'firstName' => $author && method_exists($author, 'getFirstName') ? $author->getFirstName() : 'Гость',
+                'lastName' => $author && method_exists($author, 'getLastName') ? $author->getLastName() : '',
+                'avatarUrl' => $author && method_exists($author, 'getAvatarUrl') ? $author->getAvatarUrl() : null,
+                'rating' => method_exists($reviewEntity, 'getRating') ? (int)$reviewEntity->getRating() : 5,
+                'comment' => method_exists($reviewEntity, 'getComment') ? $reviewEntity->getComment() : '',
+                'createdAt' => $createdAt,
+            ]);
+        }
+
         $responseCode = 200;
 
         $productionDate = $modification?->getProductionYear();
@@ -547,6 +583,7 @@ class CatalogApiService implements CatalogApiInterface
             'bodyNumber' => $lot->getBodyNumber(),
             'isSold' => $lot->isSold(),
             'soldDate' => $lot->getSoldDate(),
+            'review' => $apiReview,
             'images' => $images
         ]);
     }

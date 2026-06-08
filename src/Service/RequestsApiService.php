@@ -7,8 +7,7 @@ use OpenAPI\Server\Model\RequestsPostRequest;
 use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use App\Entity\Request as DbRequest;
 use App\Entity\User;
-use App\Entity\Lot; // Используем Lot
-// use App\Entity\CarModel; // Этот импорт больше не нужен
+use App\Entity\Lot;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
