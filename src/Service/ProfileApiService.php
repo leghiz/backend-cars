@@ -68,16 +68,21 @@ class ProfileApiService implements ProfileApiInterface
                 ]);
 
                 if (!$existingReview) {
+                    $productionYear = $lot->getModification()?->getProductionYear();
+
+                    if ($productionYear instanceof \DateTimeInterface) {
+                        $yearValue = (int)$productionYear->format('Y');
+                    }
                     $modelName = method_exists($lot, 'getCarModel') && $lot->getCarModel()
                         ? $lot->getCarModel()->getName()
                         : $req->getCarName();
 
                     $lotShort = new RequestLot([
                         'id' => $lot->getId(),
-                        'manufacturer' => 'Toyota',
+                        'manufacturer' => $lot->getModification()->getModel()->getManufacturer()->getName(),
                         'model' => $modelName,
-                        'year' => 2026,
-                        'bodyNumber' => 'N/A'
+                        'year' => $yearValue,
+                        'bodyNumber' => $lot->getBodyNumber(),
                     ]);
                 }
             }

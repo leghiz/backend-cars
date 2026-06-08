@@ -12,9 +12,12 @@ use OpenAPI\Server\Model\AuthForgotPasswordRequestPostRequest;
 use OpenAPI\Server\Model\AuthForgotPasswordVerifyPostRequest;
 use OpenAPI\Server\Model\AuthForgotPasswordVerifyPost200Response;
 use OpenAPI\Server\Model\AuthForgotPasswordResetPostRequest;
+use OpenAPI\Server\Model\AuthTokenRefreshPostRequest;
+use OpenAPI\Server\Model\AuthTokenRefreshPost200Response;
 use App\Entity\User;
 use App\Entity\Profile;
 use App\Entity\Role;
+use App\Entity\RefreshToken;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -30,13 +33,13 @@ class AuthApiService implements AuthApiInterface
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly JWTEncoderInterface $jwtEncoder
     ) {
-
     }
 
     public function setbearerAuth(?string $value): void
     {
         $this->bearerToken = $value ?? '';
     }
+
     public function authRegisterPost(AuthRegisterPostRequest $authRegisterPostRequest, int &$responseCode, array &$responseHeaders): void
     {
         $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authRegisterPostRequest->getEmail()]);
@@ -70,6 +73,7 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 201;
     }
+
     public function authVerifyPost(AuthVerifyPostRequest $authVerifyPostRequest, int &$responseCode, array &$responseHeaders): void
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authVerifyPostRequest->getEmail()]);
@@ -89,6 +93,7 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 200;
     }
+
     public function authLoginPost(AuthLoginPostRequest $authLoginPostRequest, int &$responseCode, array &$responseHeaders): array|object|null
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authLoginPostRequest->getEmail()]);
@@ -101,14 +106,22 @@ class AuthApiService implements AuthApiInterface
         $token = $this->jwtManager->create($user);
         $isAdmin = $user->getRole() && $user->getRole()->getName() === 'ROLE_ADMIN';
 
+        $refreshTokenStr = bin2hex(random_bytes(32));
+
+        $refreshToken = new RefreshToken();
+        $refreshToken->setRefreshToken($refreshTokenStr);
+        $refreshToken->setUsername($user->getEmail());
+        $refreshToken->setValid((new \DateTime())->modify('+30 days'));
+
+        $this->entityManager->persist($refreshToken);
+        $this->entityManager->flush();
+
         $responseCode = 200;
 
-        return new
-
-
-        AuthLoginPost200Response([
+        return new AuthLoginPost200Response([
             'token' => $token,
-            'is_admin' => $isAdmin
+            'refreshToken' => $refreshTokenStr,
+            'isAdmin' => $isAdmin
         ]);
     }
 
@@ -132,6 +145,7 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 200;
     }
+
     public function authForgotPasswordRequestPost(AuthForgotPasswordRequestPostRequest $authForgotPasswordRequestPostRequest, int &$responseCode, array &$responseHeaders): void
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordRequestPostRequest->getEmail()]);
@@ -143,6 +157,7 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 200;
     }
+
     public function authForgotPasswordVerifyPost(AuthForgotPasswordVerifyPostRequest $authForgotPasswordVerifyPostRequest, int &$responseCode, array &$responseHeaders): array|object|null
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordVerifyPostRequest->getEmail()]);
@@ -164,6 +179,7 @@ class AuthApiService implements AuthApiInterface
             'resetToken' => $resetToken
         ]);
     }
+
     public function authForgotPasswordResetPost(AuthForgotPasswordResetPostRequest $authForgotPasswordResetPostRequest, int &$responseCode, array &$responseHeaders): void
     {
         try {
@@ -188,5 +204,39 @@ class AuthApiService implements AuthApiInterface
         $this->entityManager->flush();
 
         $responseCode = 200;
+    }
+
+    public function authTokenRefreshPost(AuthTokenRefreshPostRequest $authTokenRefreshPostRequest, int &$responseCode, array &$responseHeaders): array|object|null
+    {
+        $clientRefreshToken = $authTokenRefreshPostRequest->getRefreshToken();
+
+        $refreshTokenRepo = $this->entityManager->getRepository(RefreshToken::class);
+        $refreshToken = $refreshTokenRepo->findOneBy(['refreshToken' => $clientRefreshToken]);
+
+        if (!$refreshToken || $refreshToken->getValid() < new \DateTime()) {
+            $responseCode = 401;
+            return null;
+        }
+
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $refreshToken->getUsername()]);
+        if (!$user) {
+            $responseCode = 401;
+            return null;
+        }
+
+        $newAccessToken = $this->jwtManager->create($user);
+
+        $newRefreshTokenStr = bin2hex(random_bytes(32));
+        $refreshToken->setRefreshToken($newRefreshTokenStr);
+        $refreshToken->setValid((new \DateTime())->modify('+30 days'));
+
+        $this->entityManager->flush();
+
+        $responseCode = 200;
+
+        return new AuthTokenRefreshPost200Response([
+            'token' => $newAccessToken,
+            'refreshToken' => $newRefreshTokenStr
+        ]);
     }
 }

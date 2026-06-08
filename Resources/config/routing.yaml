@@ -62,6 +62,12 @@ open_api_server_auth_authregisterpost:
     defaults:
         _controller: open_api_server.controller.auth::authRegisterPostAction
 
+open_api_server_auth_authtokenrefreshpost:
+    path:     /auth/token/refresh
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.auth::authTokenRefreshPostAction
+
 open_api_server_auth_authverifypost:
     path:     /auth/verify
     methods:  [POST]

@@ -8,6 +8,7 @@ use OpenAPI\Server\Model\ReviewsPostRequest;
 use App\Entity\Review as DbReview;
 use App\Entity\Lot;
 use App\Entity\User;
+use App\Repository\ReviewRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -18,10 +19,10 @@ class ReviewsApiService implements ReviewsApiInterface
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly ReviewRepository $reviewRepository,
         private readonly Security $security,
         private readonly RequestStack $requestStack
     ) {
-
     }
 
     public function setbearerAuth(?string $value): void
@@ -44,18 +45,8 @@ class ReviewsApiService implements ReviewsApiInterface
             $ratingOrder = $request->query->get('rating_order', $ratingOrder);
         }
 
-        $dateOrder = strtolower((string)$dateOrder) === 'asc' ? 'ASC' : 'DESC';
-        $ratingOrder = strtolower((string)$ratingOrder) === 'asc' ? 'ASC' : 'DESC';
+        $dbReviews = $this->reviewRepository->findPaginatedAndSorted($page, $limit, $dateOrder, $ratingOrder);
 
-        $qb = $this->entityManager->getRepository(DbReview::class)->createQueryBuilder('r');
-
-        // Приоритет: сначала по рейтингу, при равном рейтинге — по дате.
-        $qb->orderBy('r.rating', $ratingOrder)
-            ->addOrderBy('r.created_at', $dateOrder);
-
-        $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
-
-        $dbReviews = $qb->getQuery()->getResult();
         $apiReviews = [];
 
         foreach ($dbReviews as $review) {
@@ -65,6 +56,7 @@ class ReviewsApiService implements ReviewsApiInterface
             $modification = $lot?->getModification();
             $model = $modification?->getModel();
             $manufacturer = $model?->getManufacturer();
+            $year = $modification ? $modification->getProductionYear() : null;
 
             $apiReviews[] = new OpenApiReview([
                 'id' => $review->getId(),

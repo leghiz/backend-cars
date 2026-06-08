@@ -1,11 +1,9 @@
-# AuthLoginPost200Response
+# AuthTokenRefreshPostRequest
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**token** | **string** |  | [optional] 
-**refreshToken** | **string** |  | [optional] 
-**isAdmin** | **bool** |  | [optional] 
+**refreshToken** | **string** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

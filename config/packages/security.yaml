@@ -16,7 +16,7 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         auth_public:
-            pattern: ^/auth/(login|register|verify|forgot-password)
+            pattern: ^/auth/(login|register|verify|forgot-password|token/refresh)
             stateless: true
         main:
             lazy: true
@@ -32,6 +32,8 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/auth/token/refresh, roles: PUBLIC_ACCESS }
+
         - { path: ^/auth/register, roles: PUBLIC_ACCESS }
         - { path: ^/auth/verify, roles: PUBLIC_ACCESS }
         - { path: ^/auth/login, roles: PUBLIC_ACCESS }

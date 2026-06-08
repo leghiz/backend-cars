@@ -63,6 +63,7 @@ paths:
                 type: object
                 properties:
                   token: { type: string }
+                  refresh_token: { type: string }
                   is_admin: { type: boolean }
 
   /auth/change-password:
@@ -139,6 +140,29 @@ paths:
       responses:
         '200':
           description: пароль изменен
+
+  /auth/token/refresh:
+    post:
+      tags: [ Auth ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ refresh_token ]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: токен обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  refresh_token: { type: string }
 
   /profile:
     get:

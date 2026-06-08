@@ -38,6 +38,8 @@ use OpenAPI\Server\Model\AuthForgotPasswordVerifyPostRequest;
 use OpenAPI\Server\Model\AuthLoginPost200Response;
 use OpenAPI\Server\Model\AuthLoginPostRequest;
 use OpenAPI\Server\Model\AuthRegisterPostRequest;
+use OpenAPI\Server\Model\AuthTokenRefreshPost200Response;
+use OpenAPI\Server\Model\AuthTokenRefreshPostRequest;
 use OpenAPI\Server\Model\AuthVerifyPostRequest;
 
 /**
@@ -149,6 +151,21 @@ interface AuthApiInterface
         int &$responseCode,
         array &$responseHeaders
     ): void;
+
+    /**
+     * Operation authTokenRefreshPost
+     *
+     * @param  AuthTokenRefreshPostRequest $authTokenRefreshPostRequest   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return array|object|null
+     */
+    public function authTokenRefreshPost(
+        AuthTokenRefreshPostRequest $authTokenRefreshPostRequest,
+        int &$responseCode,
+        array &$responseHeaders
+    ): array|object|null;
 
     /**
      * Operation authVerifyPost

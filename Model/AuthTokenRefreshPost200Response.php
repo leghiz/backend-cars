@@ -1,6 +1,6 @@
 <?php
 /**
- * AuthLoginPost200Response
+ * AuthTokenRefreshPost200Response
  *
  * PHP version 8.1.1
  *
@@ -35,13 +35,13 @@ use JMS\Serializer\Annotation\Accessor;
 use JMS\Serializer\Annotation\SerializedName;
 
 /**
- * Class representing the AuthLoginPost200Response model.
+ * Class representing the AuthTokenRefreshPost200Response model.
  *
  * @package OpenAPI\Server\Model
  * @author  OpenAPI Generator team
  */
 
-class AuthLoginPost200Response 
+class AuthTokenRefreshPost200Response 
 {
         /**
      * @var string|null
@@ -60,14 +60,6 @@ class AuthLoginPost200Response
     protected ?string $refreshToken = null;
 
     /**
-     * @var bool|null
-     * @SerializedName("is_admin")
-     * @Type("bool")
-    */
-    #[Assert\Type("bool")]
-    protected ?bool $isAdmin = null;
-
-    /**
      * Constructor
      * @param array|null $data Associated array of property values initializing the model
      */
@@ -76,7 +68,6 @@ class AuthLoginPost200Response
         if (is_array($data)) {
             $this->token = array_key_exists('token', $data) ? $data['token'] : $this->token;
             $this->refreshToken = array_key_exists('refreshToken', $data) ? $data['refreshToken'] : $this->refreshToken;
-            $this->isAdmin = array_key_exists('isAdmin', $data) ? $data['isAdmin'] : $this->isAdmin;
         }
     }
 
@@ -127,33 +118,6 @@ class AuthLoginPost200Response
     public function setRefreshToken(?string $refreshToken = null): self
     {
         $this->refreshToken = $refreshToken;
-
-        return $this;
-    }
-
-
-
-
-    /**
-     * Gets isAdmin.
-     *
-     * @return bool|null
-     */
-    public function isIsAdmin(): ?bool
-    {
-        return $this->isAdmin;
-    }
-
-    /**
-    * Sets isAdmin.
-    *
-    * @param bool|null $isAdmin
-    *
-    * @return $this
-    */
-    public function setIsAdmin(?bool $isAdmin = null): self
-    {
-        $this->isAdmin = $isAdmin;
 
         return $this;
     }

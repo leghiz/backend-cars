@@ -1,6 +1,6 @@
 <?php
 /**
- * AuthLoginPost200Response
+ * AuthTokenRefreshPostRequest
  *
  * PHP version 8.1.1
  *
@@ -35,37 +35,22 @@ use JMS\Serializer\Annotation\Accessor;
 use JMS\Serializer\Annotation\SerializedName;
 
 /**
- * Class representing the AuthLoginPost200Response model.
+ * Class representing the AuthTokenRefreshPostRequest model.
  *
  * @package OpenAPI\Server\Model
  * @author  OpenAPI Generator team
  */
 
-class AuthLoginPost200Response 
+class AuthTokenRefreshPostRequest 
 {
         /**
-     * @var string|null
-     * @SerializedName("token")
-     * @Type("string")
-    */
-    #[Assert\Type("string")]
-    protected ?string $token = null;
-
-    /**
      * @var string|null
      * @SerializedName("refresh_token")
      * @Type("string")
     */
+    #[Assert\NotNull]
     #[Assert\Type("string")]
     protected ?string $refreshToken = null;
-
-    /**
-     * @var bool|null
-     * @SerializedName("is_admin")
-     * @Type("bool")
-    */
-    #[Assert\Type("bool")]
-    protected ?bool $isAdmin = null;
 
     /**
      * Constructor
@@ -74,38 +59,9 @@ class AuthLoginPost200Response
     public function __construct(array $data = null)
     {
         if (is_array($data)) {
-            $this->token = array_key_exists('token', $data) ? $data['token'] : $this->token;
             $this->refreshToken = array_key_exists('refreshToken', $data) ? $data['refreshToken'] : $this->refreshToken;
-            $this->isAdmin = array_key_exists('isAdmin', $data) ? $data['isAdmin'] : $this->isAdmin;
         }
     }
-
-    /**
-     * Gets token.
-     *
-     * @return string|null
-     */
-    public function getToken(): ?string
-    {
-        return $this->token;
-    }
-
-    /**
-    * Sets token.
-    *
-    * @param string|null $token
-    *
-    * @return $this
-    */
-    public function setToken(?string $token = null): self
-    {
-        $this->token = $token;
-
-        return $this;
-    }
-
-
-
 
     /**
      * Gets refreshToken.
@@ -124,36 +80,9 @@ class AuthLoginPost200Response
     *
     * @return $this
     */
-    public function setRefreshToken(?string $refreshToken = null): self
+    public function setRefreshToken(?string $refreshToken): self
     {
         $this->refreshToken = $refreshToken;
-
-        return $this;
-    }
-
-
-
-
-    /**
-     * Gets isAdmin.
-     *
-     * @return bool|null
-     */
-    public function isIsAdmin(): ?bool
-    {
-        return $this->isAdmin;
-    }
-
-    /**
-    * Sets isAdmin.
-    *
-    * @param bool|null $isAdmin
-    *
-    * @return $this
-    */
-    public function setIsAdmin(?bool $isAdmin = null): self
-    {
-        $this->isAdmin = $isAdmin;
 
         return $this;
     }

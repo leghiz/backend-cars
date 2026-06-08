@@ -27,6 +27,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+
 class CatalogApiService implements CatalogApiInterface
 {
     private string $bearerToken = '';

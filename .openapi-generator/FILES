@@ -20,6 +20,8 @@ Model/AuthForgotPasswordVerifyPostRequest.php
 Model/AuthLoginPost200Response.php
 Model/AuthLoginPostRequest.php
 Model/AuthRegisterPostRequest.php
+Model/AuthTokenRefreshPost200Response.php
+Model/AuthTokenRefreshPostRequest.php
 Model/AuthVerifyPostRequest.php
 Model/CarModel.php
 Model/Color.php
@@ -57,6 +59,8 @@ docs/Model/AuthForgotPasswordVerifyPostRequest.md
 docs/Model/AuthLoginPost200Response.md
 docs/Model/AuthLoginPostRequest.md
 docs/Model/AuthRegisterPostRequest.md
+docs/Model/AuthTokenRefreshPost200Response.md
+docs/Model/AuthTokenRefreshPostRequest.md
 docs/Model/AuthVerifyPostRequest.md
 docs/Model/CarModel.md
 docs/Model/Color.md

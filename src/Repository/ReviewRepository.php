@@ -16,6 +16,20 @@ class ReviewRepository extends ServiceEntityRepository
         parent::__construct($registry, Review::class);
     }
 
+    public function findPaginatedAndSorted(int $page, int $limit, string $dateOrder, string $ratingOrder): array
+    {
+        $dateOrder = strtolower($dateOrder) === 'asc' ? 'ASC' : 'DESC';
+        $ratingOrder = strtolower($ratingOrder) === 'asc' ? 'ASC' : 'DESC';
+
+        $qb = $this->createQueryBuilder('r')
+            ->orderBy('r.rating', $ratingOrder)
+            ->addOrderBy('r.created_at', $dateOrder)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return Review[] Returns an array of Review objects
     //     */
