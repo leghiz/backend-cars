@@ -7,11 +7,8 @@ use OpenAPI\Server\Model\ProfileResponse;
 use OpenAPI\Server\Model\Profile as OpenAPIProfile;
 use OpenAPI\Server\Model\Request as OpenAPIRequest;
 use OpenAPI\Server\Model\RequestLot;
-use App\Entity\User;
 use App\Entity\Profile as DbProfile;
 use App\Entity\Review as DbReview;
-use App\Entity\Lot; // Сущность Lot уже импортирована
-// use App\Entity\CarModel; // Больше не требуется
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -91,7 +88,7 @@ class ProfileApiService implements ProfileApiInterface
                 'id' => $req->getId(),
                 'carName' => $req->getCarName(),
                 'lot' => $lotShort,
-                'callTime' => $req->getCallTime()?->format('Y-m-d H:i:s'),
+                'callTime' => $req->getCallTime(),
                 'comment' => $req->getComment(),
                 'isSolved' => $req->getStatus() === 'Решена',
                 'createdAt' => $req->getCreatedAt() ? \DateTime::createFromImmutable($req->getCreatedAt()) : null

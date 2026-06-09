@@ -407,7 +407,7 @@ class CatalogApiService implements CatalogApiInterface
         $apiReview = null;
 
         if ($reviewEntity) {
-            $author = method_exists($reviewEntity, 'getUser') ? $reviewEntity->getUser() : null;
+            $author = $reviewEntity->getAccount()->getProfile();
             $dbCreatedAt = method_exists($reviewEntity, 'getCreatedAt') ? $reviewEntity->getCreatedAt() : null;
             $createdAt = null;
 
@@ -426,9 +426,9 @@ class CatalogApiService implements CatalogApiInterface
                 'lotId' => $lot->getId(),
                 'manufacturer' => $manufacturer ? $manufacturer->getName() : 'Не указан',
                 'model' => $model ? $model->getName() : 'Не указан',
-                'firstName' => $author && method_exists($author, 'getFirstName') ? $author->getFirstName() : 'Гость',
-                'lastName' => $author && method_exists($author, 'getLastName') ? $author->getLastName() : '',
-                'avatarUrl' => $author && method_exists($author, 'getAvatarUrl') ? $author->getAvatarUrl() : null,
+                'firstName' => $author ? $author->getFirstName() : 'Гость',
+                'lastName' => $author ? $author->getLastName() : '',
+                'avatarUrl' => $author ? $author->getAvatarUrl() : null,
                 'rating' => method_exists($reviewEntity, 'getRating') ? (int)$reviewEntity->getRating() : 5,
                 'comment' => method_exists($reviewEntity, 'getComment') ? $reviewEntity->getComment() : '',
                 'createdAt' => $createdAt,

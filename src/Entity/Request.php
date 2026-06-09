@@ -32,7 +32,7 @@ class Request
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\OneToOne(inversedBy: 'request')]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
     private ?Lot $lot = null;
     public function getId(): ?int
     {

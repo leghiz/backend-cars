@@ -16,7 +16,7 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         public:
-            pattern: ^/auth
+            pattern: ^/auth/(login|register|verify|forgot-password|token)
             stateless: true
         main:
             lazy: true

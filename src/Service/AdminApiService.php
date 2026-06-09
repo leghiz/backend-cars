@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Repository\UserRepository;
 use OpenAPI\Server\Api\AdminApiInterface;
-use OpenAPI\Server\Model\{UserListItem, ProfileResponse, Profile as OpenAPIProfile, Request as OpenAPIRequest};
+use OpenAPI\Server\Model\{UserListItem, ProfileResponse, Profile as OpenAPIProfile, Request as OpenAPIRequest, RequestLot};
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -17,7 +17,9 @@ class AdminApiService implements AdminApiInterface
         private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security
-    ) {}
+    )
+    {
+    }
 
     public function setbearerAuth(?string $value): void
     {
@@ -79,7 +81,15 @@ class AdminApiService implements AdminApiInterface
             'requests' => array_map(fn($req) => new OpenAPIRequest([
                 'id' => $req->getId(),
                 'carName' => $req->getCarName(),
-                'lot' => null,
+                'lot' => $req->getLot() ? new RequestLot([
+                    'id' => $req->getLot()->getId(),
+                    'manufacturer' => $req->getLot()->getModification()?->getModel()?->getManufacturer()?->getName(),
+                    'model' => $req->getLot()->getModification()?->getModel()?->getName(),
+                    'year' => $req->getLot()->getModification()?->getProductionYear() instanceof \DateTimeInterface
+                        ? (int)$req->getLot()->getModification()->getProductionYear()->format('Y')
+                        : null,
+                    'bodyNumber' => $req->getLot()->getBodyNumber(),
+                ]) : null,
                 'callTime' => $req->getCallTime()?->format('Y-m-d H:i:s'),
                 'comment' => $req->getComment(),
                 'isSolved' => $req->getStatus() === 'Решена',
