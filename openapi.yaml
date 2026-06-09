@@ -41,6 +41,23 @@ paths:
         '200':
           description: аккаунт подтвержден
 
+  /auth/verify/resend:
+    post:
+      tags: [ Auth ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: AuthVerifyResendPostRequest
+              type: object
+              required: [ email ]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: код подтверждения отправлен повторно
+
   /auth/login:
     post:
       tags: [ Auth ]
@@ -93,6 +110,7 @@ paths:
         content:
           application/json:
             schema:
+              title: AuthForgotPasswordRequestPostRequest
               type: object
               required: [ email ]
               properties:

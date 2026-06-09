@@ -12,6 +12,7 @@ Method | HTTP request | Description
 [**authRegisterPost**](AuthApiInterface.md#authRegisterPost) | **POST** /auth/register | 
 [**authTokenRefreshPost**](AuthApiInterface.md#authTokenRefreshPost) | **POST** /auth/token/refresh | 
 [**authVerifyPost**](AuthApiInterface.md#authVerifyPost) | **POST** /auth/verify | 
+[**authVerifyResendPost**](AuthApiInterface.md#authVerifyResendPost) | **POST** /auth/verify/resend | 
 
 
 ## Service Declaration
@@ -425,6 +426,58 @@ class AuthApi implements AuthApiInterface
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **authVerifyPostRequest** | [**OpenAPI\Server\Model\AuthVerifyPostRequest**](../Model/AuthVerifyPostRequest.md)|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+## **authVerifyResendPost**
+> authVerifyResendPost($authVerifyResendPostRequest)
+
+
+
+### Example Implementation
+```php
+<?php
+// src/Acme/MyBundle/Api/AuthApiInterface.php
+
+namespace Acme\MyBundle\Api;
+
+use OpenAPI\Server\Api\AuthApiInterface;
+
+class AuthApi implements AuthApiInterface
+{
+
+    // ...
+
+    /**
+     * Implementation of AuthApiInterface#authVerifyResendPost
+     */
+    public function authVerifyResendPost(AuthVerifyResendPostRequest $authVerifyResendPostRequest, int &$responseCode, array &$responseHeaders): void
+    {
+        // Implement the operation ...
+    }
+
+    // ...
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **authVerifyResendPostRequest** | [**OpenAPI\Server\Model\AuthVerifyResendPostRequest**](../Model/AuthVerifyResendPostRequest.md)|  |
 
 ### Return type
 

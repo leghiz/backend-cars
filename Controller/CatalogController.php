@@ -581,7 +581,7 @@ class CatalogController extends Controller
         }
         $asserts = [];
         $asserts[] = new Assert\All([
-            new Assert\Type("UploadedFile"),
+            new Assert\Type(\Symfony\Component\HttpFoundation\File\UploadedFile::class),
         ]);
         $asserts[] = new Assert\Valid();
         $response = $this->validate($newImages, $asserts);
@@ -755,7 +755,7 @@ class CatalogController extends Controller
         }
         $asserts = [];
         $asserts[] = new Assert\All([
-            new Assert\Type("UploadedFile"),
+            new Assert\Type(\Symfony\Component\HttpFoundation\File\UploadedFile::class),
         ]);
         $asserts[] = new Assert\Valid();
         $response = $this->validate($images, $asserts);

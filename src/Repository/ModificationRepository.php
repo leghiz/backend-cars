@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Modification;
+use App\Entity\CarModel;
+use App\Entity\EngineVolume;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

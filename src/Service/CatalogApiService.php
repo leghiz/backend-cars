@@ -213,6 +213,11 @@ class CatalogApiService implements CatalogApiInterface
 
                 $bodyNumber = $bodyNumber ?? $request->request->get('body_number');
                 $images = $images ?? $request->files->get('images');
+
+                $isSoldRaw = $request->request->get('is_sold', $request->request->get('isSold'));
+                if ($isSoldRaw !== null) {
+                    $isSold = filter_var($isSoldRaw, FILTER_VALIDATE_BOOLEAN);
+                }
             }
 
             $currentUser = $this->security->getUser();
@@ -344,8 +349,8 @@ class CatalogApiService implements CatalogApiInterface
 
             try {
                 $connection = $this->entityManager->getConnection();
-                $connection->executeStatement("SELECT setval('modifications_id_seq', COALESCE((SELECT MAX(id) FROM modifications), 0) + 1, false);");
-                $connection->executeStatement("SELECT setval('lots_id_seq', COALESCE((SELECT MAX(id) FROM lots), 0) + 1, false);");
+                $connection->executeStatement("SELECT setval('modification_id_seq', COALESCE((SELECT MAX(id) FROM modification), 0) + 1, false);");
+                $connection->executeStatement("SELECT setval('lot_id_seq', COALESCE((SELECT MAX(id) FROM lot), 0) + 1, false);");
                 $connection->executeStatement("SELECT setval('background_id_seq', COALESCE((SELECT MAX(id) FROM background), 0) + 1, false);");
                 $connection->executeStatement("SELECT setval('car_media_id_seq', COALESCE((SELECT MAX(id) FROM car_media), 0) + 1, false);");
             } catch (\Throwable $seqEx) {}
@@ -524,6 +529,11 @@ class CatalogApiService implements CatalogApiInterface
                 $deletedImages = is_string($deletedImagesVal) ? str_getcsv($deletedImagesVal) : $deletedImagesVal;
             }
             $newImages = $newImages ?? $request->files->get('new_images');
+
+            $isSoldRaw = $request->request->get('is_sold', $request->request->get('isSold'));
+            if ($isSoldRaw !== null) {
+                $isSold = filter_var($isSoldRaw, FILTER_VALIDATE_BOOLEAN);
+            }
         }
 
         $lot = $this->lotRepository->find($id);

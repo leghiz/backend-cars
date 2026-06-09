@@ -22,16 +22,14 @@ class ReviewRepository extends ServiceEntityRepository
         $ratingDir = strtolower($ratingOrder) === 'asc' ? 'ASC' : 'DESC';
 
         return $this->createQueryBuilder('r')
-            // JOIN-ы для предотвращения N+1 запросов
             ->leftJoin('r.account', 'u')->addSelect('u')
             ->leftJoin('u.profile', 'p')->addSelect('p')
             ->leftJoin('r.lot', 'l')->addSelect('l')
             ->leftJoin('l.modification', 'm')->addSelect('m')
             ->leftJoin('m.model', 'md')->addSelect('md')
             ->leftJoin('md.manufacturer', 'man')->addSelect('man')
-            // Используйте имя свойства сущности (например, createdAt), а не имя колонки в БД
             ->orderBy('r.rating', $ratingDir)
-            ->addOrderBy('r.createdAt', $dateDir)
+            ->addOrderBy('r.created_at', $dateDir)
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit)
             ->getQuery()

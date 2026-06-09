@@ -16,7 +16,7 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         public:
-            pattern: ^/(auth|catalog|reviews)
+            pattern: ^/auth
             stateless: true
         main:
             lazy: true

@@ -23,6 +23,7 @@ Model/AuthRegisterPostRequest.php
 Model/AuthTokenRefreshPost200Response.php
 Model/AuthTokenRefreshPostRequest.php
 Model/AuthVerifyPostRequest.php
+Model/AuthVerifyResendPostRequest.php
 Model/CarModel.php
 Model/Color.php
 Model/EngineVolume.php
@@ -62,6 +63,7 @@ docs/Model/AuthRegisterPostRequest.md
 docs/Model/AuthTokenRefreshPost200Response.md
 docs/Model/AuthTokenRefreshPostRequest.md
 docs/Model/AuthVerifyPostRequest.md
+docs/Model/AuthVerifyResendPostRequest.md
 docs/Model/CarModel.md
 docs/Model/Color.md
 docs/Model/EngineVolume.md

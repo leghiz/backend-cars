@@ -12,6 +12,7 @@ use OpenAPI\Server\Model\AuthForgotPasswordRequestPostRequest;
 use OpenAPI\Server\Model\AuthForgotPasswordVerifyPostRequest;
 use OpenAPI\Server\Model\AuthForgotPasswordVerifyPost200Response;
 use OpenAPI\Server\Model\AuthForgotPasswordResetPostRequest;
+use OpenAPI\Server\Model\AuthVerifyResendPostRequest;
 use OpenAPI\Server\Model\AuthTokenRefreshPostRequest;
 use OpenAPI\Server\Model\AuthTokenRefreshPost200Response;
 use App\Entity\User;
@@ -47,30 +48,42 @@ class AuthApiService implements AuthApiInterface
     public function authRegisterPost(AuthRegisterPostRequest $authRegisterPostRequest, int &$responseCode, array &$responseHeaders): void
     {
         $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authRegisterPostRequest->getEmail()]);
-        if ($existingUser) {
+
+        // Почта занята ТОЛЬКО если аккаунт уже подтверждён.
+        if ($existingUser && $existingUser->isVerified()) {
             $responseCode = 400;
             return;
         }
 
-        $user = new User();
-        $user->setEmail($authRegisterPostRequest->getEmail());
+        if ($existingUser) {
+            // Почта есть, но не подтверждена: обновляем данные этого аккаунта и переотправляем код,
+            // фронт уводит на верификацию как при обычной регистрации (ответ 201).
+            $user = $existingUser;
 
-        $hashedPassword = password_hash($authRegisterPostRequest->getPassword(), PASSWORD_BCRYPT);
-        $user->setPassword($hashedPassword);
-        $user->setIsVerified(false);
+            // Старые коды больше не нужны — действителен будет только новый.
+            $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
+            foreach ($verificationRepo->findBy(['account' => $user]) as $oldCode) {
+                $this->entityManager->remove($oldCode);
+            }
 
-        $roleRepository = $this->entityManager->getRepository(Role::class);
-        $defaultRole = $roleRepository->findOneBy(['name' => 'ROLE_USER']);
-        $user->setRole($defaultRole);
+            $profile = $user->getProfile() ?? new Profile();
+        } else {
+            $user = new User();
+            $user->setEmail($authRegisterPostRequest->getEmail());
+            $user->setIsVerified(false);
 
-        $profile = new Profile();
+            $defaultRole = $this->entityManager->getRepository(Role::class)->findOneBy(['name' => 'ROLE_USER']);
+            $user->setRole($defaultRole);
+
+            $profile = new Profile();
+        }
+
+        $user->setPassword(password_hash($authRegisterPostRequest->getPassword(), PASSWORD_BCRYPT));
+
         $profile->setFirstName($authRegisterPostRequest->getFirstName());
         $profile->setLastName($authRegisterPostRequest->getLastName());
         $profile->setPhoneNumber($authRegisterPostRequest->getPhoneNumber());
         $user->setProfile($profile);
-
-        $this->entityManager->persist($user);
-        $this->entityManager->persist($profile);
 
         $code = (string) random_int(100000, 999999);
 
@@ -79,6 +92,8 @@ class AuthApiService implements AuthApiInterface
         $verification->setCode($code);
         $verification->setExpiresAt((new \DateTimeImmutable())->modify('+1 hour'));
 
+        $this->entityManager->persist($user);
+        $this->entityManager->persist($profile);
         $this->entityManager->persist($verification);
         $this->entityManager->flush();
 
@@ -120,6 +135,46 @@ class AuthApiService implements AuthApiInterface
 
         $this->entityManager->remove($verification);
         $this->entityManager->flush();
+
+        $responseCode = 200;
+    }
+
+    public function authVerifyResendPost(AuthVerifyResendPostRequest $authVerifyResendPostRequest, int &$responseCode, array &$responseHeaders): void
+    {
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authVerifyResendPostRequest->getEmail()]);
+
+        if (!$user) {
+            $responseCode = 404;
+            return;
+        }
+
+        if ($user->isVerified()) {
+            $responseCode = 400;
+            return;
+        }
+
+        $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
+        $oldCodes = $verificationRepo->findBy(['account' => $user]);
+        foreach ($oldCodes as $oldCode) {
+            $this->entityManager->remove($oldCode);
+        }
+        $this->entityManager->flush();
+
+        $code = (string) random_int(100000, 999999);
+
+        $verification = new VerificationCode();
+        $verification->setAccount($user);
+        $verification->setCode($code);
+        $verification->setExpiresAt((new \DateTimeImmutable())->modify('+1 hour'));
+
+        $this->entityManager->persist($verification);
+        $this->entityManager->flush();
+
+        $this->messageBus->dispatch(new SendEmailMessage(
+            $user->getEmail(),
+            'Подтверждение регистрации',
+            $code
+        ));
 
         $responseCode = 200;
     }
@@ -185,10 +240,10 @@ class AuthApiService implements AuthApiInterface
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordRequestPostRequest->getEmail()]);
 
-//        if (!$user || !$user->isVerified()) {
-//            $responseCode = 400;
-//            return;
-//        }
+        if (!$user || !$user->isVerified()) {
+            $responseCode = 400;
+            return;
+        }
 
         $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
         $oldCodes = $verificationRepo->findBy(['account' => $user]);
@@ -298,9 +353,6 @@ class AuthApiService implements AuthApiInterface
         }
 
         $newAccessToken = $this->jwtManager->create($user);
-
-        $newRefreshTokenStr = bin2hex(random_bytes(32));
-        $refreshToken->setRefreshToken($newRefreshTokenStr);
         $refreshToken->setValid((new \DateTime())->modify('+30 days'));
 
         $this->entityManager->flush();
@@ -309,7 +361,7 @@ class AuthApiService implements AuthApiInterface
 
         return new AuthTokenRefreshPost200Response([
             'token' => $newAccessToken,
-            'refreshToken' => $newRefreshTokenStr
+            'refreshToken' => $refreshToken->getRefreshToken()
         ]);
     }
 }

@@ -41,6 +41,7 @@ use OpenAPI\Server\Model\AuthRegisterPostRequest;
 use OpenAPI\Server\Model\AuthTokenRefreshPost200Response;
 use OpenAPI\Server\Model\AuthTokenRefreshPostRequest;
 use OpenAPI\Server\Model\AuthVerifyPostRequest;
+use OpenAPI\Server\Model\AuthVerifyResendPostRequest;
 
 /**
  * AuthApiInterface Interface Doc Comment
@@ -178,6 +179,21 @@ interface AuthApiInterface
      */
     public function authVerifyPost(
         AuthVerifyPostRequest $authVerifyPostRequest,
+        int &$responseCode,
+        array &$responseHeaders
+    ): void;
+
+    /**
+     * Operation authVerifyResendPost
+     *
+     * @param  AuthVerifyResendPostRequest $authVerifyResendPostRequest   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return void
+     */
+    public function authVerifyResendPost(
+        AuthVerifyResendPostRequest $authVerifyResendPostRequest,
         int &$responseCode,
         array &$responseHeaders
     ): void;
