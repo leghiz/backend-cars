@@ -4,8 +4,9 @@ namespace App\Service;
 
 use App\Repository\UserRepository;
 use OpenAPI\Server\Api\AdminApiInterface;
-use OpenAPI\Server\Model\{UserListItem, ProfileResponse, Profile as OpenAPIProfile, Request as OpenAPIRequest, RequestLot};
+use OpenAPI\Server\Model\{UserListItem, ProfileResponse, Profile as OpenAPIProfile, Request as OpenAPIRequest, RequestLot, LotShort};
 use App\Entity\User;
+use App\Entity\Lot;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -94,7 +95,16 @@ class AdminApiService implements AdminApiInterface
                 'comment' => $req->getComment(),
                 'isSolved' => $req->getStatus() === 'Решена',
                 'createdAt' => $req->getCreatedAt() ? \DateTime::createFromImmutable($req->getCreatedAt()) : null
-            ]), $user->getRequests()->toArray())
+            ]), $user->getRequests()->toArray()),
+            'availableLots' => array_map(fn(Lot $lot) => new LotShort([
+                'id' => $lot->getId(),
+                'manufacturer' => $lot->getModification()?->getModel()?->getManufacturer()?->getName(),
+                'model' => $lot->getModification()?->getModel()?->getName(),
+                'year' => $lot->getModification()?->getProductionYear() instanceof \DateTimeInterface
+                    ? (int)$lot->getModification()->getProductionYear()->format('Y')
+                    : null,
+                'bodyNumber' => $lot->getBodyNumber(),
+            ]), $this->entityManager->getRepository(Lot::class)->findBy(['is_sold' => false]))
         ]);
     }
 

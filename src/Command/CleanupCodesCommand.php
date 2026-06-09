@@ -27,7 +27,7 @@ class CleanupCodesCommand extends Command
 
         $deletedRows = $this->verificationCodeRepository->deleteExpiredCodes();
 
-        $io->success(sprintf('устаревшие коды верификации удалены'));
+        $io->success(sprintf('Eстаревшие коды верификации удалены'));
 
         return Command::SUCCESS;
     }

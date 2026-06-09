@@ -586,6 +586,7 @@ components:
       properties:
         user: { $ref: '#/components/schemas/Profile' }
         requests: { type: array, items: { $ref: '#/components/schemas/Request' } }
+        available_lots: { type: array, items: { $ref: '#/components/schemas/LotShort' } }
 
     FilterOptions:
       type: object

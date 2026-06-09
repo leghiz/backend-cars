@@ -62,6 +62,16 @@ class ProfileResponse
     protected ?array $requests = null;
 
     /**
+     * @var LotShort[]|null
+     * @SerializedName("available_lots")
+     * @Type("array<OpenAPI\Server\Model\LotShort>")
+    */
+    #[Assert\All([
+        new Assert\Type("OpenAPI\Server\Model\LotShort"),
+    ])]
+    protected ?array $availableLots = null;
+
+    /**
      * Constructor
      * @param array|null $data Associated array of property values initializing the model
      */
@@ -70,6 +80,7 @@ class ProfileResponse
         if (is_array($data)) {
             $this->user = array_key_exists('user', $data) ? $data['user'] : $this->user;
             $this->requests = array_key_exists('requests', $data) ? $data['requests'] : $this->requests;
+            $this->availableLots = array_key_exists('availableLots', $data) ? $data['availableLots'] : $this->availableLots;
         }
     }
 
@@ -120,6 +131,33 @@ class ProfileResponse
     public function setRequests(?array $requests = null): self
     {
         $this->requests = $requests;
+
+        return $this;
+    }
+
+
+
+
+    /**
+     * Gets availableLots.
+     *
+     * @return LotShort[]|null
+     */
+    public function getAvailableLots(): ?array
+    {
+        return $this->availableLots;
+    }
+
+    /**
+    * Sets availableLots.
+    *
+    * @param LotShort[]|null $availableLots
+    *
+    * @return $this
+    */
+    public function setAvailableLots(?array $availableLots = null): self
+    {
+        $this->availableLots = $availableLots;
 
         return $this;
     }

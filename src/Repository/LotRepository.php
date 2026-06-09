@@ -50,7 +50,7 @@ class LotRepository extends ServiceEntityRepository
             $qb->andWhere('l.price <= :priceTo')->setParameter('priceTo', $priceTo);
         }
         if ($isSold !== null) {
-            $qb->andWhere('l.isSold = :isSold')->setParameter('isSold', $isSold);
+            $qb->andWhere('l.is_sold = :isSold')->setParameter('isSold', $isSold);
         }
         if ($manufacturerId !== null) {
             $qb->andWhere('man.id = :manufacturerId')->setParameter('manufacturerId', $manufacturerId);
