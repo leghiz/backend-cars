@@ -10,26 +10,24 @@ use OpenAPI\Server\Model\Manufacturer as OpenApiManufacturer;
 use OpenAPI\Server\Model\CarModel as OpenApiCarModel;
 use OpenAPI\Server\Model\Color as OpenApiColor;
 use OpenAPI\Server\Model\EngineVolume as OpenApiEngineVolume;
-use OpenAPI\Server\Model\Review as OpenApiReview;
 use OpenAPI\Server\Model\LotListItem;
 use OpenAPI\Server\Model\LotDetail;
 use OpenAPI\Server\Model\LotDetailReview;
 use App\Entity\Lot;
-use App\Entity\Modification;
 use App\Entity\Background;
 use App\Entity\CarMedia;
-use App\Entity\Manufacturer;
-use App\Entity\CarModel;
-use App\Entity\Color;
-use App\Entity\EngineVolume;
-use App\Entity\User;
 use App\Entity\Review;
+use App\Repository\LotRepository;
+use App\Repository\ManufacturerRepository;
+use App\Repository\CarModelRepository;
+use App\Repository\ColorRepository;
+use App\Repository\EngineVolumeRepository;
+use App\Repository\ModificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-
 
 class CatalogApiService implements CatalogApiInterface
 {
@@ -39,7 +37,13 @@ class CatalogApiService implements CatalogApiInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
         private readonly ParameterBagInterface $parameterBag,
-        private readonly RequestStack $requestStack
+        private readonly RequestStack $requestStack,
+        private readonly LotRepository $lotRepository,
+        private readonly ManufacturerRepository $manufacturerRepository,
+        private readonly CarModelRepository $carModelRepository,
+        private readonly ColorRepository $colorRepository,
+        private readonly EngineVolumeRepository $engineVolumeRepository,
+        private readonly ModificationRepository $modificationRepository
     ) {}
 
     public function setbearerAuth(?string $value): void
@@ -85,68 +89,13 @@ class CatalogApiService implements CatalogApiInterface
                 $isSold = $isSold ?? ($request->query->get('is_sold') !== null ? filter_var($request->query->get('is_sold'), FILTER_VALIDATE_BOOLEAN) : null);
             }
 
-            $qb = $this->entityManager->getRepository(Lot::class)->createQueryBuilder('l');
-            $qb->leftJoin('l.modification', 'm')
-                ->leftJoin('m.model', 'cm')
-                ->leftJoin('cm.manufacturer', 'man')
-                ->leftJoin('m.engine_volume', 'ev')
-                ->leftJoin('l.background', 'b');
+            $lots = $this->lotRepository->findByFilters(
+                $page, $limit, $search, $manufacturerId, $modelId, $colorId,
+                $transmission, $drive, $year, $priceFrom, $priceTo,
+                $mileageFrom, $mileageTo, $engineVolumeId, $isSold
+            );
 
-            if ($priceFrom !== null) {
-                $qb->andWhere('l.price >= :priceFrom')->setParameter('priceFrom', $priceFrom);
-            }
-            if ($priceTo !== null) {
-                $qb->andWhere('l.price <= :priceTo')->setParameter('priceTo', $priceTo);
-            }
-
-            if ($isSold !== null) {
-                $qb->andWhere('l.isSold = :isSold')->setParameter('isSold', $isSold);
-            }
-
-            if ($manufacturerId !== null) {
-                $qb->andWhere('man.id = :manufacturerId')->setParameter('manufacturerId', $manufacturerId);
-            }
-            if ($modelId !== null) {
-                $qb->andWhere('cm.id = :modelId')->setParameter('modelId', $modelId);
-            }
-            if ($colorId !== null) {
-                $qb->leftJoin('b.color', 'col')
-                    ->andWhere('col.id = :colorId')->setParameter('colorId', $colorId);
-            }
-            if ($engineVolumeId !== null) {
-                $qb->andWhere('ev.id = :engineVolumeId')->setParameter('engineVolumeId', $engineVolumeId);
-            }
-            if ($transmission !== null) {
-                $qb->andWhere('m.transmission = :transmission')->setParameter('transmission', $transmission);
-            }
-            if ($drive !== null) {
-                $qb->andWhere('m.drive = :drive')->setParameter('drive', $drive);
-            }
-
-            if ($search !== null && trim($search) !== '') {
-                $qb->andWhere('(LOWER(man.name) LIKE :search OR LOWER(cm.name) LIKE :search)')
-                    ->setParameter('search', '%' . mb_strtolower(trim($search)) . '%');
-            }
-
-            if ($year !== null) {
-                $qb->andWhere('m.production_year >= :yearStart')
-                    ->andWhere('m.production_year < :yearEnd')
-                    ->setParameter('yearStart', new \DateTime($year . '-01-01'))
-                    ->setParameter('yearEnd', new \DateTime(($year + 1) . '-01-01'));
-            }
-
-            if ($mileageFrom !== null) {
-                $qb->andWhere('b.mileage >= :mileageFrom')->setParameter('mileageFrom', $mileageFrom);
-            }
-            if ($mileageTo !== null) {
-                $qb->andWhere('b.mileage <= :mileageTo')->setParameter('mileageTo', $mileageTo);
-            }
-
-            $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
-
-            $lots = $qb->getQuery()->getResult();
             $apiLots = [];
-
             foreach ($lots as $lot) {
                 $modification = $lot->getModification();
                 $model = $modification?->getModel();
@@ -154,10 +103,7 @@ class CatalogApiService implements CatalogApiInterface
                 $engineVolumeEntity = $modification?->getEngineVolume();
 
                 $mediaList = $this->entityManager->getRepository(CarMedia::class)->findBy(['lot' => $lot]);
-                $images = [];
-                foreach ($mediaList as $media) {
-                    $images[] = $this->formatImagePath($media->getFilePath());
-                }
+                $images = array_map(fn($media) => $this->formatImagePath($media->getFilePath()), $mediaList);
 
                 if (empty($images)) {
                     $images = [$this->formatImagePath('/DefaultImage.png')];
@@ -191,10 +137,10 @@ class CatalogApiService implements CatalogApiInterface
 
     public function catalogFiltersGet(int &$responseCode, array &$responseHeaders): array|object|null
     {
-        $manufacturers = $this->entityManager->getRepository(Manufacturer::class)->findAll();
-        $models = $this->entityManager->getRepository(CarModel::class)->findAll();
-        $colors = $this->entityManager->getRepository(Color::class)->findAll();
-        $volumes = $this->entityManager->getRepository(EngineVolume::class)->findAll();
+        $manufacturers = $this->manufacturerRepository->findAll();
+        $models = $this->carModelRepository->findAll();
+        $colors = $this->colorRepository->findAll();
+        $volumes = $this->engineVolumeRepository->findAll();
 
         $apiManufacturers = array_map(fn($m) => new OpenApiManufacturer([
             'id' => $m->getId(),
@@ -227,14 +173,8 @@ class CatalogApiService implements CatalogApiInterface
             'transmissions' => ["Автомат", "Механика", "Робот", "Вариатор"],
             'driveTypes' => ["Полный", "Передний", "Задний"],
             'years' => range(2000, (int)date('Y')),
-            'priceRange' => new PriceRange([
-                'min' => 100000.0,
-                'max' => 15000000.0
-            ]),
-            'mileageRange' => new MileageRange([
-                'min' => 0,
-                'max' => 500000
-            ])
+            'priceRange' => new PriceRange(['min' => 100000.0, 'max' => 15000000.0]),
+            'mileageRange' => new MileageRange(['min' => 0, 'max' => 500000])
         ]);
     }
 
@@ -275,7 +215,6 @@ class CatalogApiService implements CatalogApiInterface
                 $images = $images ?? $request->files->get('images');
             }
 
-            /** @var User|null $currentUser */
             $currentUser = $this->security->getUser();
             if (!$currentUser) {
                 $responseCode = 403;
@@ -300,17 +239,7 @@ class CatalogApiService implements CatalogApiInterface
                 return null;
             }
 
-            if (is_numeric($manufacturerInput)) {
-                $manufacturerEntity = $this->entityManager->getRepository(Manufacturer::class)->find((int)$manufacturerInput);
-            } else {
-                $manufacturerEntity = $this->entityManager->getRepository(Manufacturer::class)
-                    ->createQueryBuilder('m')
-                    ->where('LOWER(m.name) = LOWER(:name)')
-                    ->setParameter('name', $manufacturerInput)
-                    ->getQuery()
-                    ->getOneOrNullResult();
-            }
-
+            $manufacturerEntity = $this->manufacturerRepository->findByIdOrName($manufacturerInput);
             if (!$manufacturerEntity) {
                 $responseCode = 400;
                 return null;
@@ -322,19 +251,7 @@ class CatalogApiService implements CatalogApiInterface
                 return null;
             }
 
-            if (is_numeric($modelInput)) {
-                $modelEntity = $this->entityManager->getRepository(CarModel::class)->find((int)$modelInput);
-            } else {
-                $modelEntity = $this->entityManager->getRepository(CarModel::class)
-                    ->createQueryBuilder('cm')
-                    ->where('LOWER(cm.name) = LOWER(:name)')
-                    ->andWhere('cm.manufacturer = :manufacturer')
-                    ->setParameter('name', $modelInput)
-                    ->setParameter('manufacturer', $manufacturerEntity)
-                    ->getQuery()
-                    ->getOneOrNullResult();
-            }
-
+            $modelEntity = $this->carModelRepository->findByIdOrNameAndManufacturer($modelInput, $manufacturerEntity);
             if (!$modelEntity) {
                 $responseCode = 400;
                 return null;
@@ -346,17 +263,7 @@ class CatalogApiService implements CatalogApiInterface
                 return null;
             }
 
-            if (is_numeric($colorInput)) {
-                $colorEntity = $this->entityManager->getRepository(Color::class)->find((int)$colorInput);
-            } else {
-                $colorEntity = $this->entityManager->getRepository(Color::class)
-                    ->createQueryBuilder('c')
-                    ->where('LOWER(c.name) = LOWER(:name)')
-                    ->setParameter('name', $colorInput)
-                    ->getQuery()
-                    ->getOneOrNullResult();
-            }
-
+            $colorEntity = $this->colorRepository->findByIdOrName($colorInput);
             if (!$colorEntity) {
                 $responseCode = 400;
                 return null;
@@ -367,47 +274,22 @@ class CatalogApiService implements CatalogApiInterface
                 return null;
             }
 
-            $volumeFloat = (float)$engineVolume;
-            $volumeFormatted = number_format($volumeFloat, 1, '.', '');
-
-            $volumeEntity = $this->entityManager->getRepository(EngineVolume::class)->findOneBy(['volume' => $volumeFormatted]);
-            if (!$volumeEntity) {
-                $volumeEntity = $this->entityManager->getRepository(EngineVolume::class)->findOneBy(['volume' => $volumeFloat]);
-            }
-
+            $volumeEntity = $this->engineVolumeRepository->findByVolumeValue((float)$engineVolume);
             if (!$volumeEntity) {
                 $responseCode = 400;
                 return null;
             }
 
             $yearInput = $year ? (int)$year : (int)date('Y');
-            $productionYearDate = \DateTime::createFromFormat('Y-m-d', $yearInput . '-01-01');
-            if (!$productionYearDate) {
-                $productionYearDate = new \DateTime($yearInput . '-01-01');
-            }
+            $productionYearDate = \DateTime::createFromFormat('Y-m-d', $yearInput . '-01-01') ?: new \DateTime($yearInput . '-01-01');
 
-            $modification = $this->entityManager->getRepository(Modification::class)->findOneBy([
-                'model' => $modelEntity,
-                'engine_volume' => $volumeEntity,
-                'production_year' => $productionYearDate
-            ]);
-
-            if ($modification) {
-                if ($modification->getDrive() !== $drive || $modification->getTransmission() !== $transmission) {
-                    $modification = null;
-                }
-            }
-
-            if (!$modification) {
-                $modification = new Modification();
-                $modification->setModel($modelEntity);
-                $modification->setEngineVolume($volumeEntity);
-                $modification->setProductionYear($productionYearDate);
-                $modification->setDrive($drive ?? 'Передний');
-                $modification->setTransmission($transmission ?? 'Автомат');
-
-                $this->entityManager->persist($modification);
-            }
+            $modification = $this->modificationRepository->findOrCreate(
+                $modelEntity,
+                $volumeEntity,
+                $productionYearDate,
+                $transmission ?? 'Автомат',
+                $drive ?? 'Передний'
+            );
 
             $lot = new Lot();
             $lot->setModification($modification);
@@ -415,13 +297,8 @@ class CatalogApiService implements CatalogApiInterface
             $lot->setBodyNumber((string)($bodyNumber ?? 'WBA0000000'));
             $lot->setArrivalDate(new \DateTime());
             $lot->setCreatedAt(new \DateTimeImmutable());
-
             $lot->setIsSold($isSold ?? false);
-            if ($isSold) {
-                $lot->setSoldDate($soldData ?? new \DateTime());
-            } else {
-                $lot->setSoldDate(null);
-            }
+            $lot->setSoldDate($isSold ? ($soldData ?? new \DateTime()) : null);
 
             $this->entityManager->persist($lot);
 
@@ -436,17 +313,14 @@ class CatalogApiService implements CatalogApiInterface
             $savedImagesPaths = [];
             if (!empty($images)) {
                 $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/lots';
-
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0775, true);
                 }
 
                 $filesArray = is_array($images) ? $images : [$images];
-
                 foreach ($filesArray as $file) {
                     if ($file instanceof UploadedFile && $file->isValid()) {
                         $newFilename = uniqid() . '.' . $file->guessExtension();
-
                         try {
                             $file->move($uploadDir, $newFilename);
                             $filePath = '/uploads/lots/' . $newFilename;
@@ -458,7 +332,7 @@ class CatalogApiService implements CatalogApiInterface
                             $this->entityManager->persist($carMedia);
                             $savedImagesPaths[] = $this->formatImagePath($filePath);
                         } catch (\Exception $e) {
-
+                            error_log("catalogPost File Save Error: " . $e->getMessage());
                         }
                     }
                 }
@@ -468,14 +342,13 @@ class CatalogApiService implements CatalogApiInterface
                 $savedImagesPaths = [$this->formatImagePath('/DefaultImage.png')];
             }
 
-            $connection = $this->entityManager->getConnection();
             try {
+                $connection = $this->entityManager->getConnection();
                 $connection->executeStatement("SELECT setval('modifications_id_seq', COALESCE((SELECT MAX(id) FROM modifications), 0) + 1, false);");
                 $connection->executeStatement("SELECT setval('lots_id_seq', COALESCE((SELECT MAX(id) FROM lots), 0) + 1, false);");
                 $connection->executeStatement("SELECT setval('background_id_seq', COALESCE((SELECT MAX(id) FROM background), 0) + 1, false);");
                 $connection->executeStatement("SELECT setval('car_media_id_seq', COALESCE((SELECT MAX(id) FROM car_media), 0) + 1, false);");
-            } catch (\Throwable $seqEx) {
-            }
+            } catch (\Throwable $seqEx) {}
 
             $this->entityManager->flush();
             $responseCode = 201;
@@ -506,8 +379,7 @@ class CatalogApiService implements CatalogApiInterface
 
     public function catalogIdGet(int $id, int &$responseCode, array &$responseHeaders): array|object|null
     {
-        $lot = $this->entityManager->getRepository(Lot::class)->find($id);
-
+        $lot = $this->lotRepository->find($id);
         if (!$lot) {
             $responseCode = 404;
             return null;
@@ -520,10 +392,7 @@ class CatalogApiService implements CatalogApiInterface
         $background = $this->entityManager->getRepository(Background::class)->findOneBy(['lot' => $lot]);
 
         $mediaList = $this->entityManager->getRepository(CarMedia::class)->findBy(['lot' => $lot]);
-        $images = [];
-        foreach ($mediaList as $media) {
-            $images[] = $this->formatImagePath($media->getFilePath());
-        }
+        $images = array_map(fn($media) => $this->formatImagePath($media->getFilePath()), $mediaList);
 
         if (empty($images)) {
             $images = [$this->formatImagePath('/DefaultImage.png')];
@@ -534,7 +403,6 @@ class CatalogApiService implements CatalogApiInterface
 
         if ($reviewEntity) {
             $author = method_exists($reviewEntity, 'getUser') ? $reviewEntity->getUser() : null;
-
             $dbCreatedAt = method_exists($reviewEntity, 'getCreatedAt') ? $reviewEntity->getCreatedAt() : null;
             $createdAt = null;
 
@@ -562,12 +430,9 @@ class CatalogApiService implements CatalogApiInterface
             ]);
         }
 
-        $responseCode = 200;
-
         $productionDate = $modification?->getProductionYear();
-        $lotYear = $productionDate instanceof \DateTimeInterface
-            ? (int)$productionDate->format('Y')
-            : (int)date('Y');
+        $lotYear = $productionDate instanceof \DateTimeInterface ? (int)$productionDate->format('Y') : (int)date('Y');
+        $responseCode = 200;
 
         return new LotDetail([
             'id' => $lot->getId(),
@@ -595,8 +460,7 @@ class CatalogApiService implements CatalogApiInterface
             return;
         }
 
-        $lot = $this->entityManager->getRepository(Lot::class)->find($id);
-
+        $lot = $this->lotRepository->find($id);
         if (!$lot) {
             $responseCode = 404;
             return;
@@ -607,7 +471,6 @@ class CatalogApiService implements CatalogApiInterface
 
         foreach ($mediaList as $media) {
             $physicalPath = $projectDir . '/public' . $media->getFilePath();
-
             if (file_exists($physicalPath) && is_file($physicalPath)) {
                 unlink($physicalPath);
             }
@@ -650,26 +513,20 @@ class CatalogApiService implements CatalogApiInterface
             $year = $year ?? ($request->request->get('year') !== null ? (int)$request->request->get('year') : null);
             $price = $price ?? ($request->request->get('price') !== null ? (float)$request->request->get('price') : null);
             $mileage = $mileage ?? ($request->request->get('mileage') !== null ? (int)$request->request->get('mileage') : null);
-
             $engineVolumeVal = $engineVolume ?? $request->request->get('engine_volume');
             $engineVolume = $engineVolumeVal !== null ? (float)$engineVolumeVal : null;
-
             $color = $color ?? $request->request->get('color');
             $transmission = $transmission ?? $request->request->get('transmission');
             $drive = $drive ?? $request->request->get('drive');
-
             $bodyNumber = $bodyNumber ?? $request->request->get('body_number');
-
             $deletedImagesVal = $deletedImages ?? $request->request->get('deleted_images');
             if ($deletedImagesVal !== null) {
                 $deletedImages = is_string($deletedImagesVal) ? str_getcsv($deletedImagesVal) : $deletedImagesVal;
             }
-
             $newImages = $newImages ?? $request->files->get('new_images');
         }
 
-        $lot = $this->entityManager->getRepository(Lot::class)->find($id);
-
+        $lot = $this->lotRepository->find($id);
         if (!$lot) {
             $responseCode = 404;
             return null;
@@ -678,133 +535,50 @@ class CatalogApiService implements CatalogApiInterface
         $modification = $lot->getModification();
         $background = $this->entityManager->getRepository(Background::class)->findOneBy(['lot' => $lot]);
 
-        if ($price !== null) {
-            $lot->setPrice((string)$price);
-        }
-
-        if ($bodyNumber !== null) {
-            $lot->setBodyNumber($bodyNumber);
-        }
-
+        if ($price !== null) $lot->setPrice((string)$price);
+        if ($bodyNumber !== null) $lot->setBodyNumber($bodyNumber);
         if ($isSold !== null) {
             $lot->setIsSold($isSold);
-
-            if (!$isSold) {
-                $lot->setSoldDate(null);
-            } else {
-                if ($soldData instanceof \DateTime) {
-                    $lot->setSoldDate($soldData);
-                } elseif ($lot->getSoldDate() === null) {
-                    $lot->setSoldDate(new \DateTime());
-                }
-            }
+            $lot->setSoldDate($isSold ? ($soldData ?? ($lot->getSoldDate() ?? new \DateTime())) : null);
         }
 
         if ($background) {
-            if ($mileage !== null) {
-                $background->setMileage($mileage);
-            }
+            if ($mileage !== null) $background->setMileage($mileage);
             if ($color !== null) {
-                $colorEntity = $this->entityManager->getRepository(Color::class)->findOneBy(['name' => $color]);
-                if (!$colorEntity && is_numeric($color)) {
-                    $colorEntity = $this->entityManager->getRepository(Color::class)->find((int)$color);
-                }
-                if ($colorEntity) {
-                    $background->setColor($colorEntity);
-                }
+                $colorEntity = $this->colorRepository->findByIdOrName($color);
+                if ($colorEntity) $background->setColor($colorEntity);
             }
         }
 
         if ($modification) {
             $currentModel = $modification->getModel();
             $currentVolume = $modification->getEngineVolume();
-
-            $productionDate = $modification->getProductionYear();
-            $lotYear = $productionDate instanceof \DateTimeInterface
-                ? (int)$productionDate->format('Y')
-                : (int)date('Y');
-
+            $lotYear = (int)$modification->getProductionYear()->format('Y');
             $newYear = $year ?? $lotYear;
             $newTransmission = $transmission ?? $modification->getTransmission();
             $newDrive = $drive ?? $modification->getDrive();
 
             $newModelEntity = $currentModel;
             if ($model !== null) {
-                $mEntity = $currentModel?->getManufacturer();
-                if ($manufacturer !== null) {
-                    $mEntity = $this->entityManager->getRepository(Manufacturer::class)->findOneBy(['name' => $manufacturer]);
-                }
-                if ($mEntity) {
-                    $newModelEntity = $this->entityManager->getRepository(CarModel::class)->findOneBy([
-                        'name' => $model,
-                        'manufacturer' => $mEntity
-                    ]);
-                }
+                $mEntity = ($manufacturer !== null) ? $this->manufacturerRepository->findOneBy(['name' => $manufacturer]) : $currentModel?->getManufacturer();
+                if ($mEntity) $newModelEntity = $this->carModelRepository->findOneBy(['name' => $model, 'manufacturer' => $mEntity]);
             }
-
-            $newVolumeEntity = $currentVolume;
-            if ($engineVolume !== null) {
-                $volumeFloat = (float)$engineVolume;
-                $volumeFormatted = number_format($volumeFloat, 1, '.', '');
-                $newVolumeEntity = $this->entityManager->getRepository(EngineVolume::class)->findOneBy(['volume' => $volumeFormatted]);
-                if (!$newVolumeEntity) {
-                    $newVolumeEntity = $this->entityManager->getRepository(EngineVolume::class)->findOneBy(['volume' => $volumeFloat]);
-                }
-            }
-
+            $newVolumeEntity = ($engineVolume !== null) ? ($this->engineVolumeRepository->findByVolumeValue((float)$engineVolume) ?: $currentVolume) : $currentVolume;
             $productionYearDate = \DateTime::createFromFormat('Y-m-d', $newYear . '-01-01');
 
-            if (
-                $newModelEntity !== $currentModel ||
-                $newVolumeEntity !== $currentVolume ||
-                $newYear !== $lotYear ||
-                $newTransmission !== $modification->getTransmission() ||
-                $newDrive !== $modification->getDrive()
-            ) {
-                $existingMod = $this->entityManager->getRepository(Modification::class)->findOneBy([
-                    'model' => $newModelEntity,
-                    'engine_volume' => $newVolumeEntity,
-                    'production_year' => $productionYearDate,
-                    'transmission' => $newTransmission,
-                    'drive' => $newDrive
-                ]);
-
-                if (!$existingMod) {
-                    $existingMod = new Modification();
-                    $existingMod->setModel($newModelEntity);
-                    $existingMod->setEngineVolume($newVolumeEntity);
-                    $existingMod->setProductionYear($productionYearDate);
-                    $existingMod->setTransmission($newTransmission);
-                    $existingMod->setDrive($newDrive);
-                    $this->entityManager->persist($existingMod);
-                }
-                $lot->setModification($existingMod);
-                $modification = $existingMod;
+            if ($newModelEntity !== $currentModel || $newVolumeEntity !== $currentVolume || $newYear !== $lotYear || $newTransmission !== $modification->getTransmission() || $newDrive !== $modification->getDrive()) {
+                $modification = $this->modificationRepository->findOrCreate($newModelEntity, $newVolumeEntity, $productionYearDate, $newTransmission, $newDrive);
+                $lot->setModification($modification);
             }
         }
 
         if (!empty($deletedImages)) {
             $projectDir = $this->parameterBag->get('kernel.project_dir');
-
             foreach ($deletedImages as $imgUrl) {
-                if (empty($imgUrl)) {
-                    continue;
-                }
-
                 $relativePath = parse_url($imgUrl, PHP_URL_PATH);
-                $media = $this->entityManager->getRepository(CarMedia::class)->findOneBy([
-                    'lot' => $lot,
-                    'file_path' => $relativePath
-                ]);
-
+                $media = $this->entityManager->getRepository(CarMedia::class)->findOneBy(['lot' => $lot, 'file_path' => $relativePath]);
                 if ($media) {
-
-                    $physicalPath = $projectDir . '/public' . $media->getFilePath();
-
-                    if (file_exists($physicalPath) && is_file($physicalPath)) {
-                        unlink($physicalPath);
-                    }
-
+                    if (file_exists($projectDir . '/public' . $media->getFilePath())) unlink($projectDir . '/public' . $media->getFilePath());
                     $this->entityManager->remove($media);
                 }
             }
@@ -812,24 +586,15 @@ class CatalogApiService implements CatalogApiInterface
 
         if (!empty($newImages)) {
             $uploadDir = $this->parameterBag->get('kernel.project_dir') . '/public/uploads/lots';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0775, true);
-            }
-
-            $newFilesArray = is_array($newImages) ? $newImages : [$newImages];
-
-            foreach ($newFilesArray as $file) {
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
+            foreach ((is_array($newImages) ? $newImages : [$newImages]) as $file) {
                 if ($file instanceof UploadedFile && $file->isValid()) {
                     $newFilename = uniqid() . '.' . $file->guessExtension();
-                    try {
-                        $file->move($uploadDir, $newFilename);
-                        $carMedia = new CarMedia();
-                        $carMedia->setLot($lot);
-                        $carMedia->setFilePath('/uploads/lots/' . $newFilename);
-                        $this->entityManager->persist($carMedia);
-                    } catch (\Exception $e) {
-                        error_log("catalogIdPost File Save Error: " . $e->getMessage());
-                    }
+                    $file->move($uploadDir, $newFilename);
+                    $carMedia = new CarMedia();
+                    $carMedia->setLot($lot);
+                    $carMedia->setFilePath('/uploads/lots/' . $newFilename);
+                    $this->entityManager->persist($carMedia);
                 }
             }
         }
@@ -838,28 +603,20 @@ class CatalogApiService implements CatalogApiInterface
 
         $mediaList = $this->entityManager->getRepository(CarMedia::class)->findBy(['lot' => $lot]);
         $imagesList = array_map(fn($m) => $this->formatImagePath($m->getFilePath()), $mediaList);
-        if (empty($imagesList)) {
-            $imagesList = [$this->formatImagePath('/DefaultImage.png')];
-        }
-
-        $productionDate = $modification?->getProductionYear();
-        $finalYear = $productionDate instanceof \DateTimeInterface
-            ? (int)$productionDate->format('Y')
-            : (int)date('Y');
+        if (empty($imagesList)) $imagesList = [$this->formatImagePath('/DefaultImage.png')];
 
         $responseCode = 200;
-
         return new LotDetail([
             'id' => $lot->getId(),
-            'manufacturer' => $modification?->getModel()?->getManufacturer() ? $modification->getModel()->getManufacturer()->getName() : 'Не указан',
-            'model' => $modification?->getModel() ? $modification->getModel()->getName() : 'Не указан',
-            'year' => $finalYear,
+            'manufacturer' => $modification->getModel()->getManufacturer()->getName(),
+            'model' => $modification->getModel()->getName(),
+            'year' => (int)$modification->getProductionYear()->format('Y'),
             'price' => (float)$lot->getPrice(),
             'mileage' => $background ? $background->getMileage() : 0,
-            'engineVolume' => $modification?->getEngineVolume() ? (float)$modification->getEngineVolume()->getVolume() : 0.0,
-            'color' => $background && $background->getColor() ? $background->getColor()->getName() : 'Не указан',
-            'transmission' => $modification ? $modification->getTransmission() : 'Не указана',
-            'drive' => $modification ? $modification->getDrive() : 'Не указан',
+            'engineVolume' => (float)$modification->getEngineVolume()->getVolume(),
+            'color' => $background->getColor()->getName(),
+            'transmission' => $modification->getTransmission(),
+            'drive' => $modification->getDrive(),
             'bodyNumber' => $lot->getBodyNumber(),
             'isSold' => $lot->isSold(),
             'soldDate' => $lot->getSoldDate(),

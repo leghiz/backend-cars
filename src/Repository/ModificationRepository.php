@@ -16,6 +16,35 @@ class ModificationRepository extends ServiceEntityRepository
         parent::__construct($registry, Modification::class);
     }
 
+    public function findOrCreate(
+        CarModel $model,
+        EngineVolume $volume,
+        \DateTimeInterface $productionYear,
+        string $transmission,
+        string $drive
+    ): Modification {
+        $modification = $this->findOneBy([
+            'model' => $model,
+            'engine_volume' => $volume,
+            'production_year' => $productionYear,
+            'transmission' => $transmission,
+            'drive' => $drive
+        ]);
+
+        if (!$modification) {
+            $modification = new Modification();
+            $modification->setModel($model);
+            $modification->setEngineVolume($volume);
+            $modification->setProductionYear($productionYear);
+            $modification->setTransmission($transmission);
+            $modification->setDrive($drive);
+
+            $this->getEntityManager()->persist($modification);
+        }
+
+        return $modification;
+    }
+
     //    /**
     //     * @return Modification[] Returns an array of Modification objects
     //     */

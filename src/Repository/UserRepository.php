@@ -15,6 +15,28 @@ class UserRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, User::class);
     }
+    public function findPaginated(int $page, int $limit): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.profile', 'p')
+            ->addSelect('p')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findFullUserData(int $id): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.profile', 'p')
+            ->leftJoin('u.requests', 'r')
+            ->addSelect('p', 'r')
+            ->where('u.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
     //    /**
     //     * @return User[] Returns an array of User objects

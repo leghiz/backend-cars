@@ -15,8 +15,8 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        auth_public:
-            pattern: ^/auth/(login|register|verify|forgot-password|token/refresh)
+        public:
+            pattern: ^/(auth|catalog|reviews)
             stateless: true
         main:
             lazy: true
@@ -32,14 +32,8 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        - { path: ^/auth/token/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/auth, roles: PUBLIC_ACCESS }
 
-        - { path: ^/auth/register, roles: PUBLIC_ACCESS }
-        - { path: ^/auth/verify, roles: PUBLIC_ACCESS }
-        - { path: ^/auth/login, roles: PUBLIC_ACCESS }
-        - { path: ^/auth/forgot-password, roles: PUBLIC_ACCESS }
-
-        - { path: ^/catalog/filters, methods: [ GET ], roles: PUBLIC_ACCESS }
         - { path: ^/catalog, methods: [ GET ], roles: PUBLIC_ACCESS }
         - { path: ^/reviews, methods: [ GET ], roles: PUBLIC_ACCESS }
 

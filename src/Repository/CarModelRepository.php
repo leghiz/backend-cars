@@ -16,6 +16,21 @@ class CarModelRepository extends ServiceEntityRepository
         parent::__construct($registry, CarModel::class);
     }
 
+    public function findByIdOrNameAndManufacturer(string $input, Manufacturer $manufacturer): ?CarModel
+    {
+        if (is_numeric($input)) {
+            return $this->find((int)$input);
+        }
+
+        return $this->createQueryBuilder('cm')
+            ->where('LOWER(cm.name) = LOWER(:name)')
+            ->andWhere('cm.manufacturer = :manufacturer')
+            ->setParameter('name', $input)
+            ->setParameter('manufacturer', $manufacturer)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return CarModel[] Returns an array of CarModel objects
     //     */

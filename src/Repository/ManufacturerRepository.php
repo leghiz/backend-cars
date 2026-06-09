@@ -16,6 +16,19 @@ class ManufacturerRepository extends ServiceEntityRepository
         parent::__construct($registry, Manufacturer::class);
     }
 
+    public function findByIdOrName(string $input): ?Manufacturer
+    {
+        if (is_numeric($input)) {
+            return $this->find((int)$input);
+        }
+
+        return $this->createQueryBuilder('m')
+            ->where('LOWER(m.name) = LOWER(:name)')
+            ->setParameter('name', $input)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Manufacturer[] Returns an array of Manufacturer objects
     //     */

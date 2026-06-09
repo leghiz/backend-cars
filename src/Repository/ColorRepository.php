@@ -16,6 +16,19 @@ class ColorRepository extends ServiceEntityRepository
         parent::__construct($registry, Color::class);
     }
 
+    public function findByIdOrName(string $input): ?Color
+    {
+        if (is_numeric($input)) {
+            return $this->find((int)$input);
+        }
+
+        return $this->createQueryBuilder('c')
+            ->where('LOWER(c.name) = LOWER(:name)')
+            ->setParameter('name', $input)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Color[] Returns an array of Color objects
     //     */

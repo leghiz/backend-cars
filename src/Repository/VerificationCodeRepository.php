@@ -25,7 +25,6 @@ class VerificationCodeRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
-
     //    /**
     //     * @return VerificationCode[] Returns an array of VerificationCode objects
     //     */

@@ -16,6 +16,18 @@ class EngineVolumeRepository extends ServiceEntityRepository
         parent::__construct($registry, EngineVolume::class);
     }
 
+    public function findByVolumeValue(float $volume): ?EngineVolume
+    {
+        $formatted = number_format($volume, 1, '.', '');
+
+        $entity = $this->findOneBy(['volume' => $formatted]);
+        if (!$entity) {
+            $entity = $this->findOneBy(['volume' => $volume]);
+        }
+
+        return $entity;
+    }
+
     //    /**
     //     * @return EngineVolume[] Returns an array of EngineVolume objects
     //     */

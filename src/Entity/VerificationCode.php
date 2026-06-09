@@ -20,7 +20,7 @@ class VerificationCode
     private ?\DateTimeImmutable $expiresAt = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $account = null;
 
     public function getId(): ?int

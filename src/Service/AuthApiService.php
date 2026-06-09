@@ -185,10 +185,10 @@ class AuthApiService implements AuthApiInterface
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordRequestPostRequest->getEmail()]);
 
-        if (!$user || !$user->isVerified()) {
-            $responseCode = 400;
-            return;
-        }
+//        if (!$user || !$user->isVerified()) {
+//            $responseCode = 400;
+//            return;
+//        }
 
         $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
         $oldCodes = $verificationRepo->findBy(['account' => $user]);

@@ -18,16 +18,24 @@ class ReviewRepository extends ServiceEntityRepository
 
     public function findPaginatedAndSorted(int $page, int $limit, string $dateOrder, string $ratingOrder): array
     {
-        $dateOrder = strtolower($dateOrder) === 'asc' ? 'ASC' : 'DESC';
-        $ratingOrder = strtolower($ratingOrder) === 'asc' ? 'ASC' : 'DESC';
+        $dateDir = strtolower($dateOrder) === 'asc' ? 'ASC' : 'DESC';
+        $ratingDir = strtolower($ratingOrder) === 'asc' ? 'ASC' : 'DESC';
 
-        $qb = $this->createQueryBuilder('r')
-            ->orderBy('r.rating', $ratingOrder)
-            ->addOrderBy('r.created_at', $dateOrder)
+        return $this->createQueryBuilder('r')
+            // JOIN-ы для предотвращения N+1 запросов
+            ->leftJoin('r.account', 'u')->addSelect('u')
+            ->leftJoin('u.profile', 'p')->addSelect('p')
+            ->leftJoin('r.lot', 'l')->addSelect('l')
+            ->leftJoin('l.modification', 'm')->addSelect('m')
+            ->leftJoin('m.model', 'md')->addSelect('md')
+            ->leftJoin('md.manufacturer', 'man')->addSelect('man')
+            // Используйте имя свойства сущности (например, createdAt), а не имя колонки в БД
+            ->orderBy('r.rating', $ratingDir)
+            ->addOrderBy('r.createdAt', $dateDir)
             ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit);
-
-        return $qb->getQuery()->getResult();
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
