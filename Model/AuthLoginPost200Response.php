@@ -52,6 +52,14 @@ class AuthLoginPost200Response
     protected ?string $token = null;
 
     /**
+     * @var string|null
+     * @SerializedName("refresh_token")
+     * @Type("string")
+    */
+    #[Assert\Type("string")]
+    protected ?string $refreshToken = null;
+
+    /**
      * @var bool|null
      * @SerializedName("is_admin")
      * @Type("bool")
@@ -67,6 +75,7 @@ class AuthLoginPost200Response
     {
         if (is_array($data)) {
             $this->token = array_key_exists('token', $data) ? $data['token'] : $this->token;
+            $this->refreshToken = array_key_exists('refreshToken', $data) ? $data['refreshToken'] : $this->refreshToken;
             $this->isAdmin = array_key_exists('isAdmin', $data) ? $data['isAdmin'] : $this->isAdmin;
         }
     }
@@ -91,6 +100,33 @@ class AuthLoginPost200Response
     public function setToken(?string $token = null): self
     {
         $this->token = $token;
+
+        return $this;
+    }
+
+
+
+
+    /**
+     * Gets refreshToken.
+     *
+     * @return string|null
+     */
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    /**
+    * Sets refreshToken.
+    *
+    * @param string|null $refreshToken
+    *
+    * @return $this
+    */
+    public function setRefreshToken(?string $refreshToken = null): self
+    {
+        $this->refreshToken = $refreshToken;
 
         return $this;
     }

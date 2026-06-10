@@ -1,7 +1,7 @@
 <?php
 
 /**
- * UserController
+ * RequestsController
  * PHP version 8.1.1
  *
  * @category Class
@@ -35,40 +35,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Constraints as Assert;
-use OpenAPI\Server\Api\UserApiInterface;
-use OpenAPI\Server\Model\Profile;
-use OpenAPI\Server\Model\ProfileResponse;
+use OpenAPI\Server\Api\RequestsApiInterface;
+use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use OpenAPI\Server\Model\RequestsPostRequest;
-use OpenAPI\Server\Model\ReviewsPostRequest;
 
 /**
- * UserController Class Doc Comment
+ * RequestsController Class Doc Comment
  *
  * @category Class
  * @package  OpenAPI\Server\Controller
  * @author   OpenAPI Generator team
  * @link     https://github.com/openapitools/openapi-generator
  */
-class UserController extends Controller
+class RequestsController extends Controller
 {
 
     /**
-     * Operation profileGet
+     * Operation requestsIdDelete
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function profileGetAction(Request $request)
+    public function requestsIdDeleteAction(Request $request, $id)
     {
-        // Figure out what data format to return to the client
-        $produces = ['application/json'];
-        // Figure out what the client accepts
-        $clientAccepts = $request->headers->has('Accept')?$request->headers->get('Accept'):'*/*';
-        $responseFormat = $this->getOutputFormat($clientAccepts, $produces);
-        if ($responseFormat === null) {
-            return new Response('', 406);
-        }
-
         // Handle authentication
         // Authentication 'bearerAuth' required
         // HTTP bearer authentication required
@@ -78,7 +67,21 @@ class UserController extends Controller
 
         // Use the default value if no value was provided
 
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
         // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
 
 
         try {
@@ -88,23 +91,22 @@ class UserController extends Controller
             $handler->setbearerAuth($securitybearerAuth);
 
             // Make the call to the business logic
-            $responseCode = 200;
+            $responseCode = 204;
             $responseHeaders = [];
 
-            $result = $handler->profileGet($responseCode, $responseHeaders);
+            $handler->requestsIdDelete($id, $responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'информация о пользователе и его заявках',
+                204 => 'заявка удалена',
                 default => '',
             };
 
             return new Response(
-                $result !== null ?$this->serialize($result, $responseFormat):'',
+                '',
                 $responseCode,
                 array_merge(
                     $responseHeaders,
                     [
-                        'Content-Type' => $responseFormat,
                         'X-OpenAPI-Message' => $message
                     ]
                 )
@@ -115,20 +117,18 @@ class UserController extends Controller
     }
 
     /**
-     * Operation profilePost
+     * Operation requestsIdPatch
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function profilePostAction(Request $request)
+    public function requestsIdPatchAction(Request $request, $id)
     {
-        // Figure out what data format to return to the client
-        $produces = ['application/json'];
-        // Figure out what the client accepts
-        $clientAccepts = $request->headers->has('Accept')?$request->headers->get('Accept'):'*/*';
-        $responseFormat = $this->getOutputFormat($clientAccepts, $produces);
-        if ($responseFormat === null) {
-            return new Response('', 406);
+        // Make sure that the client is providing something that we can consume
+        $consumes = ['application/json'];
+        if (!static::isContentTypeAllowed($request, $consumes)) {
+            // We can't consume the content that the client is sending us
+            return new Response('', 415);
         }
 
         // Handle authentication
@@ -137,52 +137,31 @@ class UserController extends Controller
         $securitybearerAuth = $request->headers->get('authorization');
 
         // Read out all input parameter values into variables
-        $firstName = $request->request->get('firstName');
-        $lastName = $request->request->get('lastName');
-        $email = $request->request->get('email');
-        $phoneNumber = $request->request->get('phoneNumber');
-        $avatar = $request->files->get('avatar');
+        $requestsIdPatchRequest = $request->getContent();
 
         // Use the default value if no value was provided
 
         // Deserialize the input values that needs it
         try {
-            $firstName = $this->deserialize($firstName, 'string', 'string');
-            $lastName = $this->deserialize($lastName, 'string', 'string');
-            $email = $this->deserialize($email, 'string', 'string');
-            $phoneNumber = $this->deserialize($phoneNumber, 'string', 'string');
+            $id = $this->deserialize($id, 'int', 'string');
+            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
+            $requestsIdPatchRequest = $this->deserialize($requestsIdPatchRequest, 'OpenAPI\Server\Model\RequestsIdPatchRequest', $inputFormat);
         } catch (SerializerRuntimeException $exception) {
             return $this->createBadRequestResponse($exception->getMessage());
         }
 
         // Validate the input values
         $asserts = [];
-        $asserts[] = new Assert\Type("string");
-        $response = $this->validate($firstName, $asserts);
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
         if ($response instanceof Response) {
             return $response;
         }
         $asserts = [];
-        $asserts[] = new Assert\Type("string");
-        $response = $this->validate($lastName, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-        $asserts = [];
-        $asserts[] = new Assert\Type("string");
-        $response = $this->validate($email, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-        $asserts = [];
-        $asserts[] = new Assert\Type("string");
-        $response = $this->validate($phoneNumber, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-        $asserts = [];
-        $asserts[] = new Assert\File();
-        $response = $this->validate($avatar, $asserts);
+        $asserts[] = new Assert\Type("OpenAPI\Server\Model\RequestsIdPatchRequest");
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($requestsIdPatchRequest, $asserts);
         if ($response instanceof Response) {
             return $response;
         }
@@ -195,23 +174,22 @@ class UserController extends Controller
             $handler->setbearerAuth($securitybearerAuth);
 
             // Make the call to the business logic
-            $responseCode = 200;
+            $responseCode = 204;
             $responseHeaders = [];
 
-            $result = $handler->profilePost($firstName, $lastName, $email, $phoneNumber, $avatar, $responseCode, $responseHeaders);
+            $handler->requestsIdPatch($id, $requestsIdPatchRequest, $responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'профиль обновлен',
+                200 => 'заявка обновлена',
                 default => '',
             };
 
             return new Response(
-                $result !== null ?$this->serialize($result, $responseFormat):'',
+                '',
                 $responseCode,
                 array_merge(
                     $responseHeaders,
                     [
-                        'Content-Type' => $responseFormat,
                         'X-OpenAPI-Message' => $message
                     ]
                 )
@@ -298,87 +276,11 @@ class UserController extends Controller
     }
 
     /**
-     * Operation reviewsPost
-     *
-     * @param Request $request The Symfony request to handle.
-     * @return Response The Symfony response.
-     */
-    public function reviewsPostAction(Request $request)
-    {
-        // Make sure that the client is providing something that we can consume
-        $consumes = ['application/json'];
-        if (!static::isContentTypeAllowed($request, $consumes)) {
-            // We can't consume the content that the client is sending us
-            return new Response('', 415);
-        }
-
-        // Handle authentication
-        // Authentication 'bearerAuth' required
-        // HTTP bearer authentication required
-        $securitybearerAuth = $request->headers->get('authorization');
-
-        // Read out all input parameter values into variables
-        $reviewsPostRequest = $request->getContent();
-
-        // Use the default value if no value was provided
-
-        // Deserialize the input values that needs it
-        try {
-            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
-            $reviewsPostRequest = $this->deserialize($reviewsPostRequest, 'OpenAPI\Server\Model\ReviewsPostRequest', $inputFormat);
-        } catch (SerializerRuntimeException $exception) {
-            return $this->createBadRequestResponse($exception->getMessage());
-        }
-
-        // Validate the input values
-        $asserts = [];
-        $asserts[] = new Assert\NotNull();
-        $asserts[] = new Assert\Type("OpenAPI\Server\Model\ReviewsPostRequest");
-        $asserts[] = new Assert\Valid();
-        $response = $this->validate($reviewsPostRequest, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
-
-
-        try {
-            $handler = $this->getApiHandler();
-
-            // Set authentication method 'bearerAuth'
-            $handler->setbearerAuth($securitybearerAuth);
-
-            // Make the call to the business logic
-            $responseCode = 204;
-            $responseHeaders = [];
-
-            $handler->reviewsPost($reviewsPostRequest, $responseCode, $responseHeaders);
-
-            $message = match($responseCode) {
-                201 => 'отзыв отправлен',
-                default => '',
-            };
-
-            return new Response(
-                '',
-                $responseCode,
-                array_merge(
-                    $responseHeaders,
-                    [
-                        'X-OpenAPI-Message' => $message
-                    ]
-                )
-            );
-        } catch (\Throwable $fallthrough) {
-            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
-        }
-    }
-
-    /**
      * Returns the handler for this API controller.
-     * @return UserApiInterface
+     * @return RequestsApiInterface
      */
     public function getApiHandler()
     {
-        return $this->apiServer->getApiHandler('user');
+        return $this->apiServer->getApiHandler('requests');
     }
 }

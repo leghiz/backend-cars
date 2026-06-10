@@ -25,44 +25,6 @@ open_api_server_admin_adminusersidget:
     requirements:
         id: '\d+'
 
-open_api_server_admin_catalogiddelete:
-    path:     /catalog/{id}
-    methods:  [DELETE]
-    defaults:
-        _controller: open_api_server.controller.admin::catalogIdDeleteAction
-    requirements:
-        id: '\d+'
-
-open_api_server_admin_catalogidpatch:
-    path:     /catalog/{id}
-    methods:  [PATCH]
-    defaults:
-        _controller: open_api_server.controller.admin::catalogIdPatchAction
-    requirements:
-        id: '\d+'
-
-open_api_server_admin_catalogpost:
-    path:     /catalog
-    methods:  [POST]
-    defaults:
-        _controller: open_api_server.controller.admin::catalogPostAction
-
-open_api_server_admin_requestsiddelete:
-    path:     /requests/{id}
-    methods:  [DELETE]
-    defaults:
-        _controller: open_api_server.controller.admin::requestsIdDeleteAction
-    requirements:
-        id: '\d+'
-
-open_api_server_admin_requestsidpatch:
-    path:     /requests/{id}
-    methods:  [PATCH]
-    defaults:
-        _controller: open_api_server.controller.admin::requestsIdPatchAction
-    requirements:
-        id: '\d+'
-
 # auth
 open_api_server_auth_authchangepasswordpost:
     path:     /auth/change-password
@@ -100,13 +62,45 @@ open_api_server_auth_authregisterpost:
     defaults:
         _controller: open_api_server.controller.auth::authRegisterPostAction
 
+open_api_server_auth_authtokenrefreshpost:
+    path:     /auth/token/refresh
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.auth::authTokenRefreshPostAction
+
 open_api_server_auth_authverifypost:
     path:     /auth/verify
     methods:  [POST]
     defaults:
         _controller: open_api_server.controller.auth::authVerifyPostAction
 
+open_api_server_auth_authverifyresendpost:
+    path:     /auth/verify/resend
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.auth::authVerifyResendPostAction
+
 # catalog
+open_api_server_catalog_catalogfiltersget:
+    path:     /catalog/filters
+    methods:  [GET]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogFiltersGetAction
+
+open_api_server_catalog_catalogget:
+    path:     /catalog
+    methods:  [GET]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogGetAction
+
+open_api_server_catalog_catalogiddelete:
+    path:     /catalog/{id}
+    methods:  [DELETE]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogIdDeleteAction
+    requirements:
+        id: '\d+'
+
 open_api_server_catalog_catalogidget:
     path:     /catalog/{id}
     methods:  [GET]
@@ -115,17 +109,55 @@ open_api_server_catalog_catalogidget:
     requirements:
         id: '\d+'
 
-open_api_server_catalog_getcatalog:
-    path:     /catalog
-    methods:  [GET]
+open_api_server_catalog_catalogidpost:
+    path:     /catalog/{id}
+    methods:  [POST]
     defaults:
-        _controller: open_api_server.controller.catalog::getCatalogAction
+        _controller: open_api_server.controller.catalog::catalogIdPostAction
+    requirements:
+        id: '\d+'
 
-open_api_server_catalog_getcatalogfilters:
-    path:     /catalog/filters
+open_api_server_catalog_catalogpost:
+    path:     /catalog
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.catalog::catalogPostAction
+
+# profile
+open_api_server_profile_profileget:
+    path:     /profile
     methods:  [GET]
     defaults:
-        _controller: open_api_server.controller.catalog::getCatalogFiltersAction
+        _controller: open_api_server.controller.profile::profileGetAction
+
+open_api_server_profile_profilepost:
+    path:     /profile
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.profile::profilePostAction
+
+# requests
+open_api_server_requests_requestsiddelete:
+    path:     /requests/{id}
+    methods:  [DELETE]
+    defaults:
+        _controller: open_api_server.controller.requests::requestsIdDeleteAction
+    requirements:
+        id: '\d+'
+
+open_api_server_requests_requestsidpatch:
+    path:     /requests/{id}
+    methods:  [PATCH]
+    defaults:
+        _controller: open_api_server.controller.requests::requestsIdPatchAction
+    requirements:
+        id: '\d+'
+
+open_api_server_requests_requestspost:
+    path:     /requests
+    methods:  [POST]
+    defaults:
+        _controller: open_api_server.controller.requests::requestsPostAction
 
 # reviews
 open_api_server_reviews_reviewsget:
@@ -139,29 +171,4 @@ open_api_server_reviews_reviewspost:
     methods:  [POST]
     defaults:
         _controller: open_api_server.controller.reviews::reviewsPostAction
-
-# user
-open_api_server_user_profileget:
-    path:     /profile
-    methods:  [GET]
-    defaults:
-        _controller: open_api_server.controller.user::profileGetAction
-
-open_api_server_user_profilepost:
-    path:     /profile
-    methods:  [POST]
-    defaults:
-        _controller: open_api_server.controller.user::profilePostAction
-
-open_api_server_user_requestspost:
-    path:     /requests
-    methods:  [POST]
-    defaults:
-        _controller: open_api_server.controller.user::requestsPostAction
-
-open_api_server_user_reviewspost:
-    path:     /reviews
-    methods:  [POST]
-    defaults:
-        _controller: open_api_server.controller.user::reviewsPostAction
 

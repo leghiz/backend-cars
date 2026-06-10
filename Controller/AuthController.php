@@ -44,7 +44,10 @@ use OpenAPI\Server\Model\AuthForgotPasswordVerifyPostRequest;
 use OpenAPI\Server\Model\AuthLoginPost200Response;
 use OpenAPI\Server\Model\AuthLoginPostRequest;
 use OpenAPI\Server\Model\AuthRegisterPostRequest;
+use OpenAPI\Server\Model\AuthTokenRefreshPost200Response;
+use OpenAPI\Server\Model\AuthTokenRefreshPostRequest;
 use OpenAPI\Server\Model\AuthVerifyPostRequest;
+use OpenAPI\Server\Model\AuthVerifyResendPostRequest;
 
 /**
  * AuthController Class Doc Comment
@@ -509,6 +512,87 @@ class AuthController extends Controller
     }
 
     /**
+     * Operation authTokenRefreshPost
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function authTokenRefreshPostAction(Request $request)
+    {
+        // Make sure that the client is providing something that we can consume
+        $consumes = ['application/json'];
+        if (!static::isContentTypeAllowed($request, $consumes)) {
+            // We can't consume the content that the client is sending us
+            return new Response('', 415);
+        }
+
+        // Figure out what data format to return to the client
+        $produces = ['application/json'];
+        // Figure out what the client accepts
+        $clientAccepts = $request->headers->has('Accept')?$request->headers->get('Accept'):'*/*';
+        $responseFormat = $this->getOutputFormat($clientAccepts, $produces);
+        if ($responseFormat === null) {
+            return new Response('', 406);
+        }
+
+        // Handle authentication
+
+        // Read out all input parameter values into variables
+        $authTokenRefreshPostRequest = $request->getContent();
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
+            $authTokenRefreshPostRequest = $this->deserialize($authTokenRefreshPostRequest, 'OpenAPI\Server\Model\AuthTokenRefreshPostRequest', $inputFormat);
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("OpenAPI\Server\Model\AuthTokenRefreshPostRequest");
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($authTokenRefreshPostRequest, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+
+            // Make the call to the business logic
+            $responseCode = 200;
+            $responseHeaders = [];
+
+            $result = $handler->authTokenRefreshPost($authTokenRefreshPostRequest, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                200 => 'токен обновлен',
+                default => '',
+            };
+
+            return new Response(
+                $result !== null ?$this->serialize($result, $responseFormat):'',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'Content-Type' => $responseFormat,
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
      * Operation authVerifyPost
      *
      * @param Request $request The Symfony request to handle.
@@ -561,6 +645,77 @@ class AuthController extends Controller
 
             $message = match($responseCode) {
                 200 => 'аккаунт подтвержден',
+                default => '',
+            };
+
+            return new Response(
+                '',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation authVerifyResendPost
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function authVerifyResendPostAction(Request $request)
+    {
+        // Make sure that the client is providing something that we can consume
+        $consumes = ['application/json'];
+        if (!static::isContentTypeAllowed($request, $consumes)) {
+            // We can't consume the content that the client is sending us
+            return new Response('', 415);
+        }
+
+        // Handle authentication
+
+        // Read out all input parameter values into variables
+        $authVerifyResendPostRequest = $request->getContent();
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $inputFormat = $request->getMimeType($request->getContentTypeFormat());
+            $authVerifyResendPostRequest = $this->deserialize($authVerifyResendPostRequest, 'OpenAPI\Server\Model\AuthVerifyResendPostRequest', $inputFormat);
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("OpenAPI\Server\Model\AuthVerifyResendPostRequest");
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($authVerifyResendPostRequest, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+
+            // Make the call to the business logic
+            $responseCode = 204;
+            $responseHeaders = [];
+
+            $handler->authVerifyResendPost($authVerifyResendPostRequest, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                200 => 'код подтверждения отправлен повторно',
                 default => '',
             };
 

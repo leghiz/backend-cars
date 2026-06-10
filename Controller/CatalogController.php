@@ -52,12 +52,12 @@ class CatalogController extends Controller
 {
 
     /**
-     * Operation catalogIdGet
+     * Operation catalogFiltersGet
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function catalogIdGetAction(Request $request, $id)
+    public function catalogFiltersGetAction(Request $request)
     {
         // Figure out what data format to return to the client
         $produces = ['application/json'];
@@ -74,21 +74,7 @@ class CatalogController extends Controller
 
         // Use the default value if no value was provided
 
-        // Deserialize the input values that needs it
-        try {
-            $id = $this->deserialize($id, 'int', 'string');
-        } catch (SerializerRuntimeException $exception) {
-            return $this->createBadRequestResponse($exception->getMessage());
-        }
-
         // Validate the input values
-        $asserts = [];
-        $asserts[] = new Assert\NotNull();
-        $asserts[] = new Assert\Type("int");
-        $response = $this->validate($id, $asserts);
-        if ($response instanceof Response) {
-            return $response;
-        }
 
 
         try {
@@ -99,10 +85,10 @@ class CatalogController extends Controller
             $responseCode = 200;
             $responseHeaders = [];
 
-            $result = $handler->catalogIdGet($id, $responseCode, $responseHeaders);
+            $result = $handler->catalogFiltersGet($responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'все данные о машине',
+                200 => 'фильтры',
                 default => '',
             };
 
@@ -123,12 +109,12 @@ class CatalogController extends Controller
     }
 
     /**
-     * Operation getCatalog
+     * Operation catalogGet
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function getCatalogAction(Request $request)
+    public function catalogGetAction(Request $request)
     {
         // Figure out what data format to return to the client
         $produces = ['application/json'];
@@ -284,7 +270,7 @@ class CatalogController extends Controller
             $responseCode = 200;
             $responseHeaders = [];
 
-            $result = $handler->getCatalog($page, $limit, $search, $manufacturerId, $modelId, $colorId, $transmission, $drive, $year, $priceFrom, $priceTo, $mileageFrom, $mileageTo, $engineVolumeId, $isSold, $responseCode, $responseHeaders);
+            $result = $handler->catalogGet($page, $limit, $search, $manufacturerId, $modelId, $colorId, $transmission, $drive, $year, $priceFrom, $priceTo, $mileageFrom, $mileageTo, $engineVolumeId, $isSold, $responseCode, $responseHeaders);
 
             $message = match($responseCode) {
                 200 => 'список машин',
@@ -308,12 +294,78 @@ class CatalogController extends Controller
     }
 
     /**
-     * Operation getCatalogFilters
+     * Operation catalogIdDelete
      *
      * @param Request $request The Symfony request to handle.
      * @return Response The Symfony response.
      */
-    public function getCatalogFiltersAction(Request $request)
+    public function catalogIdDeleteAction(Request $request, $id)
+    {
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 204;
+            $responseHeaders = [];
+
+            $handler->catalogIdDelete($id, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                204 => 'машина удалена',
+                default => '',
+            };
+
+            return new Response(
+                '',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation catalogIdGet
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogIdGetAction(Request $request, $id)
     {
         // Figure out what data format to return to the client
         $produces = ['application/json'];
@@ -330,7 +382,21 @@ class CatalogController extends Controller
 
         // Use the default value if no value was provided
 
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
         // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
 
 
         try {
@@ -341,10 +407,377 @@ class CatalogController extends Controller
             $responseCode = 200;
             $responseHeaders = [];
 
-            $result = $handler->getCatalogFilters($responseCode, $responseHeaders);
+            $result = $handler->catalogIdGet($id, $responseCode, $responseHeaders);
 
             $message = match($responseCode) {
-                200 => 'фильтры',
+                200 => 'все данные о машине',
+                default => '',
+            };
+
+            return new Response(
+                $result !== null ?$this->serialize($result, $responseFormat):'',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'Content-Type' => $responseFormat,
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation catalogIdPost
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogIdPostAction(Request $request, $id)
+    {
+        // Figure out what data format to return to the client
+        $produces = ['application/json'];
+        // Figure out what the client accepts
+        $clientAccepts = $request->headers->has('Accept')?$request->headers->get('Accept'):'*/*';
+        $responseFormat = $this->getOutputFormat($clientAccepts, $produces);
+        if ($responseFormat === null) {
+            return new Response('', 406);
+        }
+
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+        $manufacturer = $request->request->get('manufacturer');
+        $model = $request->request->get('model');
+        $year = $request->request->get('year');
+        $price = $request->request->get('price');
+        $mileage = $request->request->get('mileage');
+        $engineVolume = $request->request->get('engineVolume');
+        $color = $request->request->get('color');
+        $transmission = $request->request->get('transmission');
+        $drive = $request->request->get('drive');
+        $bodyNumber = $request->request->get('bodyNumber');
+        $isSold = $request->request->get('isSold', false);
+        $soldData = $request->request->get('soldData');
+        $deletedImages = $request->request->get('deletedImages');
+        $newImages = $request->files->get('newImages');
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $id = $this->deserialize($id, 'int', 'string');
+            $manufacturer = $this->deserialize($manufacturer, 'string', 'string');
+            $model = $this->deserialize($model, 'string', 'string');
+            $year = $this->deserialize($year, 'int', 'string');
+            $price = $this->deserialize($price, 'float', 'string');
+            $mileage = $this->deserialize($mileage, 'int', 'string');
+            $engineVolume = $this->deserialize($engineVolume, 'float', 'string');
+            $color = $this->deserialize($color, 'string', 'string');
+            $transmission = $this->deserialize($transmission, 'string', 'string');
+            $drive = $this->deserialize($drive, 'string', 'string');
+            $bodyNumber = $this->deserialize($bodyNumber, 'string', 'string');
+            $isSold = $this->deserialize($isSold, 'bool', 'string');
+            $soldData = $this->deserialize($soldData, '\DateTime', 'string');
+            $deletedImages = $this->deserialize($deletedImages, 'array<csv,string>', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\NotNull();
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($id, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($manufacturer, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($model, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($year, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("float");
+        $response = $this->validate($price, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($mileage, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("float");
+        $response = $this->validate($engineVolume, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($color, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($transmission, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($drive, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($bodyNumber, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("bool");
+        $response = $this->validate($isSold, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("DateTime");
+        $response = $this->validate($soldData, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\All([
+            new Assert\Type("string"),
+        ]);
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($deletedImages, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\All([
+            new Assert\Type(\Symfony\Component\HttpFoundation\File\UploadedFile::class),
+        ]);
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($newImages, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 200;
+            $responseHeaders = [];
+
+            $result = $handler->catalogIdPost($id, $manufacturer, $model, $year, $price, $mileage, $engineVolume, $color, $transmission, $drive, $bodyNumber, $isSold, $soldData, $deletedImages, $newImages, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                200 => 'данные машины изменены',
+                default => '',
+            };
+
+            return new Response(
+                $result !== null ?$this->serialize($result, $responseFormat):'',
+                $responseCode,
+                array_merge(
+                    $responseHeaders,
+                    [
+                        'Content-Type' => $responseFormat,
+                        'X-OpenAPI-Message' => $message
+                    ]
+                )
+            );
+        } catch (\Throwable $fallthrough) {
+            return $this->createErrorResponse(new HttpException(500, 'An unsuspected error occurred.', $fallthrough));
+        }
+    }
+
+    /**
+     * Operation catalogPost
+     *
+     * @param Request $request The Symfony request to handle.
+     * @return Response The Symfony response.
+     */
+    public function catalogPostAction(Request $request)
+    {
+        // Figure out what data format to return to the client
+        $produces = ['application/json'];
+        // Figure out what the client accepts
+        $clientAccepts = $request->headers->has('Accept')?$request->headers->get('Accept'):'*/*';
+        $responseFormat = $this->getOutputFormat($clientAccepts, $produces);
+        if ($responseFormat === null) {
+            return new Response('', 406);
+        }
+
+        // Handle authentication
+        // Authentication 'bearerAuth' required
+        // HTTP bearer authentication required
+        $securitybearerAuth = $request->headers->get('authorization');
+
+        // Read out all input parameter values into variables
+        $manufacturer = $request->request->get('manufacturer');
+        $model = $request->request->get('model');
+        $year = $request->request->get('year');
+        $price = $request->request->get('price');
+        $mileage = $request->request->get('mileage');
+        $engineVolume = $request->request->get('engineVolume');
+        $color = $request->request->get('color');
+        $transmission = $request->request->get('transmission');
+        $drive = $request->request->get('drive');
+        $bodyNumber = $request->request->get('bodyNumber');
+        $isSold = $request->request->get('isSold', false);
+        $soldData = $request->request->get('soldData');
+        $images = $request->files->get('images');
+
+        // Use the default value if no value was provided
+
+        // Deserialize the input values that needs it
+        try {
+            $manufacturer = $this->deserialize($manufacturer, 'string', 'string');
+            $model = $this->deserialize($model, 'string', 'string');
+            $year = $this->deserialize($year, 'int', 'string');
+            $price = $this->deserialize($price, 'float', 'string');
+            $mileage = $this->deserialize($mileage, 'int', 'string');
+            $engineVolume = $this->deserialize($engineVolume, 'float', 'string');
+            $color = $this->deserialize($color, 'string', 'string');
+            $transmission = $this->deserialize($transmission, 'string', 'string');
+            $drive = $this->deserialize($drive, 'string', 'string');
+            $bodyNumber = $this->deserialize($bodyNumber, 'string', 'string');
+            $isSold = $this->deserialize($isSold, 'bool', 'string');
+            $soldData = $this->deserialize($soldData, '\DateTime', 'string');
+        } catch (SerializerRuntimeException $exception) {
+            return $this->createBadRequestResponse($exception->getMessage());
+        }
+
+        // Validate the input values
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($manufacturer, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($model, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($year, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("float");
+        $response = $this->validate($price, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("int");
+        $response = $this->validate($mileage, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("float");
+        $response = $this->validate($engineVolume, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($color, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($transmission, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($drive, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("string");
+        $response = $this->validate($bodyNumber, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("bool");
+        $response = $this->validate($isSold, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\Type("DateTime");
+        $response = $this->validate($soldData, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        $asserts = [];
+        $asserts[] = new Assert\All([
+            new Assert\Type(\Symfony\Component\HttpFoundation\File\UploadedFile::class),
+        ]);
+        $asserts[] = new Assert\Valid();
+        $response = $this->validate($images, $asserts);
+        if ($response instanceof Response) {
+            return $response;
+        }
+
+
+        try {
+            $handler = $this->getApiHandler();
+
+            // Set authentication method 'bearerAuth'
+            $handler->setbearerAuth($securitybearerAuth);
+
+            // Make the call to the business logic
+            $responseCode = 200;
+            $responseHeaders = [];
+
+            $result = $handler->catalogPost($manufacturer, $model, $year, $price, $mileage, $engineVolume, $color, $transmission, $drive, $bodyNumber, $isSold, $soldData, $images, $responseCode, $responseHeaders);
+
+            $message = match($responseCode) {
+                201 => 'машина добавлена',
                 default => '',
             };
 

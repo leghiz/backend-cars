@@ -46,22 +46,29 @@ interface CatalogApiInterface
 {
 
     /**
-     * Operation catalogIdGet
+     * Sets authentication method bearerAuth
      *
-     * @param  int $id   (required)
+     * @param string|null $value Value of the bearerAuth authentication method.
+     *
+     * @return void
+     */
+    public function setbearerAuth(?string $value): void;
+
+    /**
+     * Operation catalogFiltersGet
+     *
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
      * @return array|object|null
      */
-    public function catalogIdGet(
-        int $id,
+    public function catalogFiltersGet(
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;
 
     /**
-     * Operation getCatalog
+     * Operation catalogGet
      *
      * @param  int $page   (optional, default to 1)
      * @param  int $limit   (optional, default to 10)
@@ -83,7 +90,7 @@ interface CatalogApiInterface
      *
      * @return array|object|null
      */
-    public function getCatalog(
+    public function catalogGet(
         int $page,
         int $limit,
         ?string $search,
@@ -104,14 +111,113 @@ interface CatalogApiInterface
     ): array|object|null;
 
     /**
-     * Operation getCatalogFilters
+     * Operation catalogIdDelete
      *
+     * @param  int $id   (required)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return void
+     */
+    public function catalogIdDelete(
+        int $id,
+        int &$responseCode,
+        array &$responseHeaders
+    ): void;
+
+    /**
+     * Operation catalogIdGet
+     *
+     * @param  int $id   (required)
      * @param  int     &$responseCode    The HTTP Response Code
      * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
      *
      * @return array|object|null
      */
-    public function getCatalogFilters(
+    public function catalogIdGet(
+        int $id,
+        int &$responseCode,
+        array &$responseHeaders
+    ): array|object|null;
+
+    /**
+     * Operation catalogIdPost
+     *
+     * @param  int $id   (required)
+     * @param  string|null $manufacturer   (optional)
+     * @param  string|null $model   (optional)
+     * @param  int|null $year   (optional)
+     * @param  float|null $price   (optional)
+     * @param  int|null $mileage   (optional)
+     * @param  float|null $engineVolume   (optional)
+     * @param  string|null $color   (optional)
+     * @param  string|null $transmission   (optional)
+     * @param  string|null $drive   (optional)
+     * @param  string|null $bodyNumber   (optional)
+     * @param  bool $isSold   (optional, default to false)
+     * @param  \DateTime|null $soldData   (optional)
+     * @param  array|null $deletedImages   (optional)
+     * @param  array|null $newImages   (optional)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return array|object|null
+     */
+    public function catalogIdPost(
+        int $id,
+        ?string $manufacturer,
+        ?string $model,
+        ?int $year,
+        ?float $price,
+        ?int $mileage,
+        ?float $engineVolume,
+        ?string $color,
+        ?string $transmission,
+        ?string $drive,
+        ?string $bodyNumber,
+        bool $isSold,
+        ?\DateTime $soldData,
+        ?array $deletedImages,
+        ?array $newImages,
+        int &$responseCode,
+        array &$responseHeaders
+    ): array|object|null;
+
+    /**
+     * Operation catalogPost
+     *
+     * @param  string|null $manufacturer   (optional)
+     * @param  string|null $model   (optional)
+     * @param  int|null $year   (optional)
+     * @param  float|null $price   (optional)
+     * @param  int|null $mileage   (optional)
+     * @param  float|null $engineVolume   (optional)
+     * @param  string|null $color   (optional)
+     * @param  string|null $transmission   (optional)
+     * @param  string|null $drive   (optional)
+     * @param  string|null $bodyNumber   (optional)
+     * @param  bool $isSold   (optional, default to false)
+     * @param  \DateTime|null $soldData   (optional)
+     * @param  array|null $images   (optional)
+     * @param  int     &$responseCode    The HTTP Response Code
+     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
+     *
+     * @return array|object|null
+     */
+    public function catalogPost(
+        ?string $manufacturer,
+        ?string $model,
+        ?int $year,
+        ?float $price,
+        ?int $mileage,
+        ?float $engineVolume,
+        ?string $color,
+        ?string $transmission,
+        ?string $drive,
+        ?string $bodyNumber,
+        bool $isSold,
+        ?\DateTime $soldData,
+        ?array $images,
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;

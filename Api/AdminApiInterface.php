@@ -30,9 +30,7 @@
 namespace OpenAPI\Server\Api;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use OpenAPI\Server\Model\LotDetail;
 use OpenAPI\Server\Model\ProfileResponse;
-use OpenAPI\Server\Model\RequestsIdPatchRequest;
 use OpenAPI\Server\Model\UserListItem;
 
 /**
@@ -101,83 +99,4 @@ interface AdminApiInterface
         int &$responseCode,
         array &$responseHeaders
     ): array|object|null;
-
-    /**
-     * Operation catalogIdDelete
-     *
-     * @param  int $id   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function catalogIdDelete(
-        int $id,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation catalogIdPatch
-     *
-     * @param  int $id   (required)
-     * @param  LotDetail $lotDetail   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function catalogIdPatch(
-        int $id,
-        LotDetail $lotDetail,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation catalogPost
-     *
-     * @param  LotDetail $lotDetail   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function catalogPost(
-        LotDetail $lotDetail,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation requestsIdDelete
-     *
-     * @param  int $id   (required)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function requestsIdDelete(
-        int $id,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
-
-    /**
-     * Operation requestsIdPatch
-     *
-     * @param  int $id   (required)
-     * @param  RequestsIdPatchRequest|null $requestsIdPatchRequest   (optional)
-     * @param  int     &$responseCode    The HTTP Response Code
-     * @param  array   $responseHeaders  Additional HTTP headers to return with the response ()
-     *
-     * @return void
-     */
-    public function requestsIdPatch(
-        int $id,
-        ?RequestsIdPatchRequest $requestsIdPatchRequest,
-        int &$responseCode,
-        array &$responseHeaders
-    ): void;
 }
