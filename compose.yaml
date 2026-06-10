@@ -5,7 +5,7 @@ services:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
       POSTGRES_DB: app
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_PASSWORD: f958e0265c9150e8f7abded3
       POSTGRES_USER: app
     healthcheck:
       test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
@@ -24,9 +24,17 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      DATABASE_URL: "postgresql://app:1234@database:5432/app?serverVersion=16&charset=utf8"
+      DATABASE_URL: "postgresql://app:f958e0265c9150e8f7abded3@database:5432/app?serverVersion=16&charset=utf8"
     depends_on:
       - database
+
+  worker:
+    build: .
+    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M
+    volumes: [ .:/var/www/html ]
+    environment: { DATABASE_URL: "postgresql://app:f958e0265c9150e8f7abded3@database:5432/app?serverVersion=16&charset=utf8" }
+    depends_on: [ database ]
+    restart: unless-stopped
 
 volumes:
   database_data:
