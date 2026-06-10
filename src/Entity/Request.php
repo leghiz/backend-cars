@@ -19,8 +19,8 @@ class Request
     #[ORM\Column(length: 255)]
     private ?string $car_name = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    private ?\DateTime $call_time = null;
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $call_time = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -61,12 +61,12 @@ class Request
         return $this;
     }
 
-    public function getCallTime(): ?\DateTime
+    public function getCallTime(): ?string
     {
         return $this->call_time;
     }
 
-    public function setCallTime(?\DateTime $call_time): static
+    public function setCallTime(?string $call_time): static
     {
         $this->call_time = $call_time;
 

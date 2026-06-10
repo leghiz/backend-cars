@@ -189,7 +189,6 @@ class Lot
 
     public function setReview(Review $review): static
     {
-        // set the owning side of the relation if necessary
         if ($review->getLot() !== $this) {
             $review->setLot($this);
         }
@@ -206,12 +205,10 @@ class Lot
 
     public function setRequest(?Request $request): static
     {
-        // unset the owning side of the relation if necessary
         if ($request === null && $this->request !== null) {
             $this->request->setLot(null);
         }
 
-        // set the owning side of the relation if necessary
         if ($request !== null && $request->getLot() !== $this) {
             $request->setLot($this);
         }

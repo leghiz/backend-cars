@@ -37,6 +37,7 @@ class LotRepository extends ServiceEntityRepository
         ?bool $isSold = null
     ): array {
         $qb = $this->createQueryBuilder('l')
+            ->select('l', 'm', 'cm', 'man', 'ev', 'b')
             ->leftJoin('l.modification', 'm')
             ->leftJoin('m.model', 'cm')
             ->leftJoin('cm.manufacturer', 'man')
@@ -60,6 +61,7 @@ class LotRepository extends ServiceEntityRepository
         }
         if ($colorId !== null) {
             $qb->leftJoin('b.color', 'col')
+                ->addSelect('col')
                 ->andWhere('col.id = :colorId')->setParameter('colorId', $colorId);
         }
         if ($engineVolumeId !== null) {

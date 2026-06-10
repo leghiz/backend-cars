@@ -26,6 +26,9 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use App\Message\SendEmailMessage;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 
 class AuthApiService implements AuthApiInterface
 {
@@ -36,7 +39,10 @@ class AuthApiService implements AuthApiInterface
         private readonly Security $security,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly JWTEncoderInterface $jwtEncoder,
-        private readonly MessageBusInterface $messageBus
+        private readonly MessageBusInterface $messageBus,
+        private readonly RequestStack $requestStack,
+        #[Target('login_limiter.limiter')]
+        private readonly RateLimiterFactory $loginLimiter
     ) {
     }
 
@@ -49,18 +55,14 @@ class AuthApiService implements AuthApiInterface
     {
         $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authRegisterPostRequest->getEmail()]);
 
-        // Почта занята ТОЛЬКО если аккаунт уже подтверждён.
         if ($existingUser && $existingUser->isVerified()) {
             $responseCode = 400;
             return;
         }
 
         if ($existingUser) {
-            // Почта есть, но не подтверждена: обновляем данные этого аккаунта и переотправляем код,
-            // фронт уводит на верификацию как при обычной регистрации (ответ 201).
             $user = $existingUser;
 
-            // Старые коды больше не нужны — действителен будет только новый.
             $verificationRepo = $this->entityManager->getRepository(VerificationCode::class);
             foreach ($verificationRepo->findBy(['account' => $user]) as $oldCode) {
                 $this->entityManager->remove($oldCode);
@@ -141,6 +143,16 @@ class AuthApiService implements AuthApiInterface
 
     public function authVerifyResendPost(AuthVerifyResendPostRequest $authVerifyResendPostRequest, int &$responseCode, array &$responseHeaders): void
     {
+        $request = $this->requestStack->getCurrentRequest();
+        $ipAddress = $request ? $request->getClientIp() : '127.0.0.1';
+
+        $limiter = $this->loginLimiter->create($ipAddress);
+
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $responseCode = 429;
+            return;
+        }
+
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authVerifyResendPostRequest->getEmail()]);
 
         if (!$user) {
@@ -178,9 +190,18 @@ class AuthApiService implements AuthApiInterface
 
         $responseCode = 200;
     }
-
     public function authLoginPost(AuthLoginPostRequest $authLoginPostRequest, int &$responseCode, array &$responseHeaders): array|object|null
     {
+        $request = $this->requestStack->getCurrentRequest();
+        $ipAddress = $request ? $request->getClientIp() : '127.0.0.1';
+
+        $limiter = $this->loginLimiter->create($ipAddress);
+
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $responseCode = 429;
+            return null;
+        }
+
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authLoginPostRequest->getEmail()]);
 
         if (!$user || !password_verify($authLoginPostRequest->getPassword(), $user->getPassword())) {
@@ -238,6 +259,17 @@ class AuthApiService implements AuthApiInterface
 
     public function authForgotPasswordRequestPost(AuthForgotPasswordRequestPostRequest $authForgotPasswordRequestPostRequest, int &$responseCode, array &$responseHeaders): void
     {
+
+        $request = $this->requestStack->getCurrentRequest();
+        $ipAddress = $request ? $request->getClientIp() : '127.0.0.1';
+
+        $limiter = $this->loginLimiter->create($ipAddress);
+
+        if (false === $limiter->consume(1)->isAccepted()) {
+            $responseCode = 429;
+            return;
+        }
+
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $authForgotPasswordRequestPostRequest->getEmail()]);
 
         if (!$user || !$user->isVerified()) {

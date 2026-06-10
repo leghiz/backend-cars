@@ -42,15 +42,7 @@ class RequestsApiService implements RequestsApiInterface
         $dbRequest = new DbRequest();
         $dbRequest->setAccount($currentUser);
         $dbRequest->setCarName($requestsPostRequest->getCarName() ?? '');
-
-        if ($requestsPostRequest->getCallTime()) {
-            try {
-                $dbRequest->setCallTime(new \DateTime($requestsPostRequest->getCallTime()));
-            } catch (\Exception $e) {
-                $dbRequest->setCallTime(null);
-            }
-        }
-
+        $dbRequest->setCallTime($requestsPostRequest->getCallTime());
         $dbRequest->setComment($requestsPostRequest->getComment());
         $dbRequest->setStatus('Новая');
         $dbRequest->setCreatedAt(new \DateTimeImmutable());

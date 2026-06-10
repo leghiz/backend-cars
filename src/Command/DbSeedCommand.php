@@ -58,18 +58,16 @@ class DbSeedCommand extends Command
         }
 
         $this->entityManager->flush();
-        $io->note('Справочники обновлены.');
     }
 
     private function seedNhtsaData(SymfonyStyle $io): void
     {
-        $io->section('Загрузка автопроизводителей из API');
+        $io->section('Загрузка автопроизводителей');
 
         try {
             $response = $this->httpClient->request('GET', self::MAKES_URL)->toArray();
             $makes = $response['Results'] ?? [];
         } catch (\Exception $e) {
-            $io->error('Ошибка API: ' . $e->getMessage());
             return;
         }
 
