@@ -91,7 +91,7 @@ class AdminApiService implements AdminApiInterface
                         : null,
                     'bodyNumber' => $req->getLot()->getBodyNumber(),
                 ]) : null,
-                'callTime' => $req->getCallTime()?->format('Y-m-d H:i:s'),
+                'callTime' => $req->getCallTime(),
                 'comment' => $req->getComment(),
                 'isSolved' => $req->getStatus() === 'Решена',
                 'createdAt' => $req->getCreatedAt() ? \DateTime::createFromImmutable($req->getCreatedAt()) : null
